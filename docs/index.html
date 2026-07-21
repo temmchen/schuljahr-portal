@@ -168,6 +168,22 @@
   .docrow .dl:hover{color:var(--fach);border-color:var(--fach)}
   .cat-empty{padding:18px 15px;text-align:center;color:var(--tx3);font-size:13.5px;line-height:1.6}
 
+  .admin-token,.admin-block{padding:13px 16px;border-top:1px solid var(--line);color:var(--tx2);font-size:13px}
+  .admin-token input{display:block;width:100%;margin-top:8px;background:var(--card2);
+    border:1px solid var(--line2);color:var(--tx);font:inherit;font-size:13px;padding:8px 10px;border-radius:9px}
+  .admin-token input:focus{outline:none;border-color:var(--accent)}
+  .admin-token .tok-hilfe{display:block;margin-top:6px;font-size:11.5px;color:var(--tx3);line-height:1.6}
+  .admin-token .tok-hilfe a{color:var(--accent);font-weight:600}
+  .admin-block .up-sub{margin-left:8px;font-size:11.5px;color:var(--tx3);font-weight:600}
+  .np-ausgabe:empty{display:none}
+  .np-erfolg{margin-top:9px;padding:11px 13px;border:1px solid color-mix(in srgb,var(--ok) 50%,transparent);
+    border-radius:10px;background:color-mix(in srgb,var(--ok) 8%,transparent);font-size:12.5px;line-height:1.7}
+  .np-pw{margin-top:6px;font-size:14px}
+  .np-pw code{background:var(--card);border:1px solid var(--line);padding:3px 9px;border-radius:7px;
+    color:var(--tx);font-weight:700;letter-spacing:.5px}
+  .np-snippet{margin-top:9px;color:var(--tx3)}
+  .np-snippet pre{margin:5px 0 0;background:var(--bg);border:1px solid var(--line);border-radius:8px;
+    padding:9px 11px;color:var(--tx2);font-size:12px;overflow-x:auto;white-space:pre-wrap;word-break:break-word}
   .admin-upload{padding:13px 16px;border-top:1px solid var(--line);color:var(--tx2);font-size:13px}
   .admin-upload .up-sub{margin-left:8px;font-size:11.5px;color:var(--tx3);font-weight:600}
   .up-zeile{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}
@@ -286,9 +302,10 @@ function toast(msg){
 async function leiteKekAb(passwort, saltB64, iterationen){
   const material = await crypto.subtle.importKey(
     "raw", new TextEncoder().encode(passwort.normalize("NFC")), "PBKDF2", false, ["deriveKey"]);
+  /* encrypt zusätzlich: der Admin wickelt beim Anlegen eines Kollegen Schlüssel ein */
   return crypto.subtle.deriveKey(
     { name:"PBKDF2", salt:b64zu(saltB64), iterations:iterationen, hash:"SHA-256" },
-    material, { name:"AES-GCM", length:256 }, false, ["decrypt"]);
+    material, { name:"AES-GCM", length:256 }, false, ["encrypt","decrypt"]);
 }
 async function entschluesseleJSON(key, ivB64, ctB64){
   const klar = await crypto.subtle.decrypt({name:"AES-GCM", iv:b64zu(ivB64)}, key, b64zu(ctB64));
@@ -529,11 +546,23 @@ function renderAdminKarte(){
       <span class="dg">${kl.faecher.length} Fächer · ${n} Datei(en) online</span></li>`;
   }).join("");
   const ersteKlasse = Object.keys(DATEN.klassen).sort()[0];
+  const zug = zaehleZugaenge();
   return `<section class="cat modref" style="--fach:var(--accent)">
-    <h3><span class="ic">🛠️</span> Verwaltung <span class="hint-sub">nur in der Admin-Sicht</span></h3>
+    <h3><span class="ic">🛠️</span> Verwaltung <span class="hint-sub">nur in der Admin-Sicht</span>
+      <span class="cnt">${zug.voll} Profs/Admin · ${zug.klassen} Klassen-Logins</span></h3>
     <ul class="doclist">${zeilen}</ul>
-    <div class="admin-upload">
-      <b>📤 Datei direkt hochladen</b> <span class="up-sub">verschlüsselt im Browser → GitHub → nach 1–2 min online</span>
+
+    <div class="admin-token">
+      <b>🔑 GitHub-Token</b> <span class="up-sub">für Hochladen &amp; Kollegen anlegen — nur in dieser Sitzung</span>
+      <input type="password" id="upToken" placeholder="GitHub-Token (fine-grained, Contents R/W)"
+        autocomplete="off" value="${esc(tokenLesen())}" aria-label="GitHub-Token">
+      <span class="tok-hilfe"><a href="https://github.com/settings/personal-access-tokens/new"
+        target="_blank" rel="noopener">Token anlegen</a> → Only select repositories →
+        <code>schuljahr-portal</code>, Permission <i>Contents: Read and write</i>.</span>
+    </div>
+
+    <div class="admin-block">
+      <b>📤 Datei hochladen</b> <span class="up-sub">verschlüsselt im Browser → nach 1–2 min online</span>
       <div class="up-zeile">
         <select id="upKlasse" aria-label="Klasse">${Object.keys(DATEN.klassen).sort().map(k=>
           `<option value="${esc(k)}">${esc(DATEN.klassen[k].name)}</option>`).join("")}</select>
@@ -547,31 +576,47 @@ function renderAdminKarte(){
       </div>
       <div class="up-zeile">
         <input type="file" id="upDatei" aria-label="Datei">
-        <input type="password" id="upToken" placeholder="GitHub-Token (fine-grained)"
-          autocomplete="off" value="${esc(tokenLesen())}" aria-label="GitHub-Token">
         <button class="btn up-btn" id="upStart">Verschlüsseln &amp; hochladen</button>
       </div>
       <div class="up-status" id="upStatus"></div>
-      <div class="up-merken">⚠️ <b>Danach die Datei auch in den OneDrive-Ordner legen!</b>
-        Der Mac-Build (<code>build.py</code>) baut aus OneDrive — was dort fehlt, verschwindet
-        beim nächsten Build wieder aus dem Portal. Vor dem nächsten Mac-Build: <code>git pull</code>.<br>
-        Token: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank"
-        rel="noopener">github.com/settings/personal-access-tokens/new</a> — Repository access:
-        <i>Only select repositories</i> → <code>schuljahr-portal</code>, Permission:
-        <i>Contents — Read and write</i>. Wird nur in dieser Browser-Sitzung gemerkt.
-        Référentiels &amp; Noten gehen weiter nur über den Mac-Weg.</div>
+      <div class="up-merken">⚠️ <b>Datei danach auch in den OneDrive-Ordner legen!</b>
+        Der Mac-Build baut aus OneDrive — was dort fehlt, verschwindet beim nächsten
+        <code>build.py</code> wieder. Vor dem nächsten Mac-Build: <code>git pull</code>.</div>
     </div>
+
+    <div class="admin-block">
+      <b>👥 Neuen Kollegen (Prof) anlegen</b> <span class="up-sub">eigenes Login, sieht alle Klassen außer Noten</span>
+      <div class="up-zeile">
+        <input type="text" id="npName" placeholder="Name, z. B. Marc Lichter"
+          autocomplete="off" aria-label="Name des Kollegen">
+        <button class="btn up-btn" id="npStart">Kollegen anlegen</button>
+      </div>
+      <div class="up-status" id="npStatus"></div>
+      <div class="np-ausgabe" id="npAusgabe"></div>
+      <div class="up-merken">⚠️ <b>Nur Admin.</b> Kollegen können selbst keine Zugänge anlegen
+        (dieser Bereich erscheint nur in deiner Sicht, und Schreiben braucht dein Token).
+        Neues Passwort <b>zusätzlich in <code>zugangsdaten.json</code> am Mac eintragen</b> —
+        sonst löscht der nächste <code>build.py</code> den Zugang wieder (Snippet erscheint oben).</div>
+    </div>
+
     <div class="admin-hilfe">
-      <b>Am Mac:</b> Datei in den OneDrive-Bereichsordner legen → <code>python3 build.py</code> → pushen.
-      <b>Verwalten:</b>
-      <code>python3 verwaltung.py klasse DP1ET</code> neue Klasse ·
-      <code>python3 verwaltung.py prof "Name"</code> neuer Kollege ·
-      <code>python3 verwaltung.py passwort DP2ET</code> Passwort neu ·
-      <code>python3 verwaltung.py liste</code> Übersicht<br>
-      <b>📊 Noten:</b> bleiben grundsätzlich offline — Noten-Dashboard liegt lokal im
-      OneDrive-Dashboard-Ordner und wird nie hochgeladen.
+      <b>Nur am Mac möglich:</b> neue <b>Klasse</b> (<code>python3 verwaltung.py klasse DP1ET</code>),
+      <b>Passwort</b> ändern (<code>python3 verwaltung.py passwort DP2ET</code>),
+      Übersicht (<code>python3 verwaltung.py liste</code>), Référentiels &amp; Noten.<br>
+      <b>📊 Noten</b> bleiben grundsätzlich offline (lokales Noten-Dashboard, nie hochgeladen).
     </div>
   </section>`;
+}
+function zaehleZugaenge(){
+  /* aus index.json ableitbar: wer in ALLEN Vaults einen Wrap hat, ist Prof/Admin;
+     wer nur in einem einzelnen (Skripte-)Vault steht, ist ein Klassen-Login. */
+  if(!INDEX) return {voll:0, klassen:0};
+  const nVaults = INDEX.vaults.length;
+  const proP = {};
+  INDEX.vaults.forEach(v=>v.wraps.forEach(w=>{ proP[w.p] = (proP[w.p]||0)+1; }));
+  let voll=0, klassen=0;
+  Object.values(proP).forEach(n=>{ if(n>=nVaults && nVaults>0) voll++; else klassen++; });
+  return {voll, klassen};
 }
 
 /* ─────────────────────── Admin-Upload (GitHub-API) ─────────────────────── */
@@ -655,6 +700,80 @@ async function adminUpload(){
     toast(`✅ „${name}" hochgeladen — in 1–2 min für alle sichtbar. Jetzt noch in OneDrive ablegen!`);
     $("#upDatei").value = "";
     render();
+  }catch(e){
+    setze("Fehler: " + e.message);
+  }finally{
+    knopf.disabled = false;
+  }
+}
+
+/* ───────────────── Neuen Kollegen (Prof) anlegen — nur Admin ───────────── */
+const PW_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789";   // wie build.py: ohne 0/O,1/l
+function neuesPasswort(gruppen){
+  const w = crypto.getRandomValues(new Uint8Array(gruppen*4));
+  let s = "";
+  for(let i=0;i<gruppen*4;i++){ if(i && i%4===0) s+="-"; s += PW_ALPHABET[w[i] % PW_ALPHABET.length]; }
+  return s;
+}
+async function adminNeuerProf(){
+  const status = $("#npStatus"), knopf = $("#npStart"), ausgabe = $("#npAusgabe");
+  const setze = t => { status.textContent = t; };
+  if(!SESSION || SESSION.rolle!=="admin"){ setze("Nur der Admin darf Zugänge anlegen."); return; }
+  const name = $("#npName").value.trim();
+  const token = $("#upToken").value.trim();
+  if(!name){ setze("Bitte einen Namen eintragen."); return; }
+  if(!token){ setze("Bitte oben das GitHub-Token eintragen."); return; }
+  knopf.disabled = true;
+  try{
+    try{ sessionStorage.setItem(TOKEN_KEY, token); }catch(e){}
+    setze("Lade index.json von GitHub …");
+    const idxAntwort = await ghAPI("contents/docs/vaults/index.json?ref=main", {}, token);
+    const idx = JSON.parse(new TextDecoder().decode(b64zu(idxAntwort.content.replace(/\s/g,""))));
+
+    // eindeutige Principal-ID (kollidiert nicht mit build.py-IDs p0..pN)
+    const vorhanden = new Set(idx.principals.map(p=>p.id));
+    let pid; do { pid = "pw" + [...crypto.getRandomValues(new Uint8Array(4))]
+      .map(b=>b.toString(16).padStart(2,"0")).join(""); } while(vorhanden.has(pid));
+
+    const passwort = neuesPasswort(4);
+    const saltBytes = crypto.getRandomValues(new Uint8Array(16));
+    setze("Leite Schlüssel ab (kann kurz dauern) …");
+    const kek = await leiteKekAb(passwort, b64ausBytes(saltBytes), idx.kdf.iter);
+
+    // Für JEDEN Vault, auf den der Admin Zugriff hat, den Vault-Schlüssel einwickeln
+    setze("Wickle Tresor-Schlüssel für den neuen Zugang ein …");
+    let gewickelt = 0;
+    for(const v of idx.vaults){
+      const meins = SESSION.vaults.find(x=>x.id===v.id);
+      if(!meins) continue;                       // Admin hat immer alle — Sicherheitsnetz
+      const nutzlast = JSON.stringify({ k: meins.k, rolle:"prof", klasse:null, label:name });
+      const nonce = crypto.getRandomValues(new Uint8Array(12));
+      const ct = new Uint8Array(await crypto.subtle.encrypt(
+        {name:"AES-GCM", iv:nonce}, kek, new TextEncoder().encode(nutzlast)));
+      v.wraps.push({ iv: b64ausBytes(nonce), ct: b64ausBytes(ct), p: pid });
+      gewickelt++;
+    }
+    if(!gewickelt){ setze("Keine Tresore zum Freischalten gefunden."); knopf.disabled=false; return; }
+    idx.principals.push({ id: pid, salt: b64ausBytes(saltBytes) });
+
+    setze("Speichere index.json …");
+    await ghAPI("contents/docs/vaults/index.json", {method:"PUT", body: JSON.stringify({
+      message:`Portal: neuer Kollege ${name}`, branch:"main",
+      sha: idxAntwort.sha,
+      content: b64ausBytes(new TextEncoder().encode(JSON.stringify(idx, null, 1)))})}, token);
+
+    INDEX = idx;   // lokale Anzeige aktualisieren (Zähler)
+    setze("");
+    ausgabe.innerHTML = `<div class="np-erfolg">✅ <b>${esc(name)}</b> angelegt — Login in 1–2 min aktiv.
+      <div class="np-pw">Passwort: <code>${esc(passwort)}</code></div>
+      <div class="np-snippet"><b>Jetzt am Mac in <code>zugangsdaten.json</code> → <code>profs</code> eintragen</b>
+      (sonst löscht der nächste <code>build.py</code> den Zugang):
+      <pre>{ "name": ${esc(JSON.stringify(name))}, "passwort": "${esc(passwort)}" }</pre></div></div>`;
+    toast(`✅ Kollege „${name}“ angelegt. Passwort notieren und in zugangsdaten.json eintragen!`);
+    $("#npName").value = "";
+    // Zähler im Kopf der Karte aktualisieren
+    const z = zaehleZugaenge(); const cnt = document.querySelector(".modref h3 .cnt");
+    if(cnt) cnt.textContent = `${z.voll} Profs/Admin · ${z.klassen} Klassen-Logins`;
   }catch(e){
     setze("Fehler: " + e.message);
   }finally{
@@ -769,6 +888,7 @@ function oeffneDatei(btn){
 /* ═══════════════════════════ Navigation & Kopf ══════════════════════════ */
 $("#view").addEventListener("click", e=>{
   if(e.target.closest("#upStart")){ adminUpload(); return; }
+  if(e.target.closest("#npStart")){ adminNeuerProf(); return; }
   const open = e.target.closest(".open,.dl");
   if(open){ oeffneDatei(open); return; }
   const tile = e.target.closest(".tile");

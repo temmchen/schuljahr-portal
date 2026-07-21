@@ -60,12 +60,20 @@ weiterhin, wird aber **nie** hochgeladen.
 
 ## Passwörter & Zugänge verwalten
 
-Am einfachsten mit dem Admin-Werkzeug (im Portal-Ordner):
+**Kollegen (Profs) legst du am schnellsten direkt auf der Admin-Seite an:**
+im Verwaltungs-Panel unter „👥 Neuen Kollegen anlegen" den Namen eintippen,
+Token muss gesetzt sein → der Browser erzeugt das Passwort, schaltet alle
+Tresore frei und committet. Danach das angezeigte Passwort **zusätzlich in
+`zugangsdaten.json` am Mac eintragen** (Snippet wird angezeigt), sonst entfernt
+der nächste `build.py` den Zugang wieder. Nur der Admin kann das — Kollegen sehen
+das Panel nicht, und Schreiben braucht dein Token.
+
+Alle übrigen Verwaltungsaufgaben laufen über das Werkzeug am Mac:
 
 ```bash
 python3 verwaltung.py liste                 # alle Zugänge + Passwörter anzeigen
 python3 verwaltung.py klasse DP1ET          # neue Klasse (fragt Fächer ab, legt Ordner an)
-python3 verwaltung.py prof "Marc Lichter"   # neuer Kollege
+python3 verwaltung.py prof "Marc Lichter"   # neuer Kollege (Alternative zum Web-Panel)
 python3 verwaltung.py passwort DP2ET        # Passwort neu würfeln (Klasse/Prof/admin)
 ```
 
