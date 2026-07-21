@@ -379,6 +379,7 @@ function renderLogin(){
     <div class="login-info">Jede Klasse und jede Lehrperson hat ein eigenes Passwort.<br>
       Die Inhalte werden erst nach der Anmeldung in deinem Browser entschlüsselt.</div>
   </div></div>`;
+  $("#pw").focus();
   $("#loginForm").addEventListener("submit", async ev=>{
     ev.preventDefault();
     const pw = $("#pw").value;
@@ -411,7 +412,9 @@ function renderLogin(){
 /* ═══════════════════════════ Portal-Ansicht ═════════════════════════════ */
 function AK(){ return DATEN.klassen[state.klasse]; }
 function faecher(){ return AK()?.faecher || []; }
-const modulKey = (f,sem)=> (f.modul[sem]||f.key).replace(/\s+/g,"");
+/* Modul-Key kommt aus dem Manifest (mkeys, von build.py erzeugt) — Fallback nur
+   für alte Manifeste. So können Python und JS nie unterschiedliche Keys bilden. */
+const modulKey = (f,sem)=> (f.mkeys && f.mkeys[sem]) || (f.modul[sem]||f.key).replace(/\s+/g,"");
 function docsOf(mk,katKey){ const m=AK().module[mk]; return (m && m[katKey]) || []; }
 function refsOf(mk){ const m=AK().module[mk]; return (m && m.referentiels) || {formation:null,evaluation:null,weitere:[]}; }
 function sichtbareKategorien(){ return KATEGORIEN.filter(k=>AK().bereiche.has(k.key)); }

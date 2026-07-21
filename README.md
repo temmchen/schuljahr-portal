@@ -43,9 +43,17 @@ Alle Zugänge stehen in **`zugangsdaten.json`** (liegt NUR lokal, ist per
 - **Klasse hinzufügen:** Block in `klassen` kopieren, `key`/`name`/`passwort`/`faecher`
   anpassen, Ordner `…/Dashboard/<KEY>/<Modul>/<Bereich>/` anlegen.
 - **Prof hinzufügen/entfernen:** Eintrag in `profs` ergänzen/löschen.
-- **Passwort ändern** (z. B. nach Schuljahresende oder wenn eines „durchgesickert" ist):
-  Passwort in der JSON ändern, dann `python3 build.py` + committen + pushen.
-  Der Build verschlüsselt alles frisch — alte Passwörter sind sofort wertlos.
+- **Passwort ändern** (z. B. zum Schuljahresende): Passwort in der JSON ändern,
+  dann `python3 build.py` + committen + pushen. Ab dann öffnet nur noch das neue
+  Passwort die **aktuellen und künftigen** Inhalte.
+
+> ⚠️ **Wichtig — was Passwort-Wechsel NICHT kann:** Git vergisst nichts. Alte
+> Commits enthalten die früheren verschlüsselten Stände weiter, und die bleiben
+> mit dem **alten** Passwort entschlüsselbar. Ist ein Prof-Passwort wirklich
+> durchgesickert, gilt: alles, was bis dahin veröffentlicht war, ist als
+> offengelegt zu betrachten. Wer das ausschließen will, legt das Repo neu an
+> (Historie löschen: Repo löschen → neu erstellen → aktuellen Stand pushen)
+> **und** verwendet die betroffenen Prüfungen nicht mehr unverändert.
 
 Nach **jeder** Änderung an `zugangsdaten.json`: `build.py` ausführen und `docs/` pushen.
 

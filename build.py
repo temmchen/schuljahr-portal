@@ -197,12 +197,22 @@ def main():
     if not klassen or not admin:
         sys.exit("zugangsdaten.json braucht mindestens eine Klasse und einen Admin.")
 
+    # Ordner-Existenz VOR der Zugangs-Registrierung prüfen — sonst entsteht ein
+    # "verwaister" Zugang, dessen korrektes Passwort im Portal nichts öffnet.
+    for kl in klassen:
+        if not (inhalt / kl["key"]).is_dir():
+            sys.exit(f"Ordner für Klasse {kl['key']} fehlt: {inhalt / kl['key']}\n"
+                     f"→ Ordner anlegen oder Klasse aus zugangsdaten.json entfernen.")
+
     # ── Zugänge (Principals) einsammeln + Passwörter prüfen ──
     principals = []   # (id, salt, kek, rolle, klasse|None, label)
     passwoerter = []
 
     def registriere(passwort, rolle, klasse, label):
-        if not passwort or len(passwort) < 8:
+        # NFC-normalisiert prüfen — sonst rutschen NFD/NFC-"Zwillinge" (macOS!)
+        # durch den Duplikat-Check, obwohl sie kryptographisch identisch sind.
+        passwort = unicodedata.normalize("NFC", passwort or "")
+        if len(passwort) < 8:
             sys.exit(f"Passwort für '{label}' fehlt oder ist kürzer als 8 Zeichen.")
         if passwort in passwoerter:
             sys.exit(f"Passwort für '{label}' ist doppelt vergeben — jedes Login braucht ein eigenes.")
@@ -264,11 +274,20 @@ def main():
                     if len(daten) > 95 * 1024 * 1024:
                         print(f"  ⚠️  {quelle.name}: über 95 MB — GitHub-Limit ist 100 MB/Datei!")
 
+        # Modul-Schlüssel EXPLIZIT mitliefern (mkeys), damit der Browser exakt die
+        # Keys benutzt, mit denen dieses Manifest gebaut wurde — keine getrennte
+        # Ableitung Python/JS (Whitespace-Semantik von \s+ vs. replace(" ","")).
+        faecher_mit_keys = []
+        for f in klasse_cfg.get("faecher", []):
+            f2 = dict(f)
+            f2["mkeys"] = {sem: name.replace(" ", "")
+                           for sem, name in f.get("modul", {}).items()}
+            faecher_mit_keys.append(f2)
         manifest = {
             "klasse": klasse_cfg["key"],
             "name": klasse_cfg["name"],
             "bereich": bereich_typ,
-            "faecher": klasse_cfg.get("faecher", []),
+            "faecher": faecher_mit_keys,
             "module": module_daten,
         }
         (vdir / "m.enc").write_bytes(
@@ -297,6 +316,8 @@ def main():
         for fach in kl.get("faecher", []):
             for _sem, _mname, mk in modul_schluessel(fach):
                 mdir = basis / mk
+                if not mdir.is_dir():
+                    print(f"  ⚠️  Modul-Ordner fehlt (Modul erscheint leer): {mdir}")
                 sk = [{"name": anzeige_name(p), "typ": p.suffix.lstrip(".").lower(), "_pfad": str(p)}
                       for p in sammle_dateien(mdir / "Skripte")]
                 skripte_module[mk] = {"skripte": sk}
