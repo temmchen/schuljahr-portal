@@ -11,8 +11,15 @@ kein Klartext-Dokument.
 | Zugang | sieht |
 |---|---|
 | **Klasse** (ein Passwort pro Klasse) | nur 📘 **Skripte** der eigenen Klasse |
-| **Prof** (ein Passwort pro Lehrperson) | **alles**: Skripte, Prüfungen, Aufgaben, Noten, Sonstiges, Référentiels — aller Klassen |
-| **Admin** | wie Prof; verwaltet zusätzlich Passwörter & Build |
+| **Prof** (ein Passwort pro Lehrperson) | **alles**: Skripte, Prüfungen, Aufgaben, Sonstiges, Référentiels — aller Klassen |
+| **Admin** | wie Prof + 🛠️-Verwaltungskarte; verwaltet Passwörter & Build |
+
+**📊 Noten sind bewusst KEIN Teil des Portals.** Notenlisten sind personenbezogene
+Daten und dürfen nicht online — `build.py` ignoriert alle `Noten/`-Ordner
+grundsätzlich (Ausgabe: „bleiben OFFLINE"). Dafür gibt es das separate
+**Noten-Dashboard offline**: im OneDrive-Dashboard-Ordner
+`python3 baue_noten_dashboard.py` ausführen → `Noten-Dashboard.html` per
+Doppelklick öffnen. Beides liegt außerhalb dieses Repos und wird nie gepusht.
 
 Die Trennung ist **kryptographisch**, nicht kosmetisch: Der Schüler-Vault und der
 interne Vault (Prüfungen usw.) haben verschiedene Schlüssel. Mit einem
@@ -31,18 +38,29 @@ auch nicht durch Manipulation der Webseite.
 3. Nach 1–2 Minuten ist die Datei online — verschlüsselt.
 
 Der Dateiname (ohne Endung, `_` → Leerzeichen) wird zum Anzeigenamen.
-Ordner-Konvention pro Modul: `Skripte/ Pruefungen/ Aufgaben/ Noten/ Sonstiges/ Referentiels/`
+Ordner-Konvention pro Modul: `Skripte/ Pruefungen/ Aufgaben/ Sonstiges/ Referentiels/`
 (im `Referentiels/`-Ordner werden Dateien mit „formation" bzw. „evaluation" im Namen
-automatisch den beiden festen Slots zugeordnet).
+automatisch den beiden festen Slots zugeordnet). Der `Noten/`-Ordner existiert
+weiterhin, wird aber **nie** hochgeladen.
 
 ## Passwörter & Zugänge verwalten
 
-Alle Zugänge stehen in **`zugangsdaten.json`** (liegt NUR lokal, ist per
-`.gitignore` vom Repo ausgeschlossen — niemals committen!):
+Am einfachsten mit dem Admin-Werkzeug (im Portal-Ordner):
+
+```bash
+python3 verwaltung.py liste                 # alle Zugänge + Passwörter anzeigen
+python3 verwaltung.py klasse DP1ET          # neue Klasse (fragt Fächer ab, legt Ordner an)
+python3 verwaltung.py prof "Marc Lichter"   # neuer Kollege
+python3 verwaltung.py passwort DP2ET        # Passwort neu würfeln (Klasse/Prof/admin)
+```
+
+Jeder Befehl speichert `zugangsdaten.json`, baut das Portal neu und sagt dir den
+Push-Befehl. Alternativ von Hand — alle Zugänge stehen in **`zugangsdaten.json`**
+(liegt NUR lokal, ist per `.gitignore` vom Repo ausgeschlossen — niemals committen!):
 
 - **Klasse hinzufügen:** Block in `klassen` kopieren, `key`/`name`/`passwort`/`faecher`
   anpassen, Ordner `…/Dashboard/<KEY>/<Modul>/<Bereich>/` anlegen.
-- **Prof hinzufügen/entfernen:** Eintrag in `profs` ergänzen/löschen.
+- **Prof entfernen:** Eintrag in `profs` löschen (danach `build.py` + push).
 - **Passwort ändern** (z. B. zum Schuljahresende): Passwort in der JSON ändern,
   dann `python3 build.py` + committen + pushen. Ab dann öffnet nur noch das neue
   Passwort die **aktuellen und künftigen** Inhalte.
@@ -70,15 +88,16 @@ Nach **jeder** Änderung an `zugangsdaten.json`: `build.py` ausführen und `docs
 - **Sitzung:** bleibt bis zum Schließen des Tabs (sessionStorage). „Abmelden" löscht sie.
 
 **Grenzen:** Wer ein Klassen-Passwort kennt, kann die Skripte natürlich weitergeben —
-wie bei jedem geteilten Passwort. Und: **keine sensiblen personenbezogenen Daten**
-(echte Notenlisten mit Namen!) hochladen — der Noten-Bereich ist für anonymisierte
-Übersichten gedacht. Für echte Noten gilt weiterhin: nur schulinterne Systeme.
+wie bei jedem geteilten Passwort. Und: **keine personenbezogenen Daten** hochladen.
+Notenlisten sind deshalb komplett ausgeklammert (Noten-Dashboard offline, s. o.);
+auch korrigierte Arbeiten mit Schülernamen gehören nicht in die Bereichsordner.
 
 ## Technik
 
 ```
 Schuljahr-Portal/
 ├── build.py                    # scannt OneDrive-Inhalte, verschlüsselt → docs/vaults/
+├── verwaltung.py               # Admin-Werkzeug: Klassen/Profs/Passwörter verwalten
 ├── zugangsdaten.json           # GEHEIM (gitignored): Passwörter, Klassen, Fächer
 ├── zugangsdaten.beispiel.json  # Vorlage ohne echte Passwörter
 └── docs/                       # GitHub-Pages-Wurzel (öffentlich, nur Chiffrat)

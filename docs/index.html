@@ -168,6 +168,12 @@
   .docrow .dl:hover{color:var(--fach);border-color:var(--fach)}
   .cat-empty{padding:18px 15px;text-align:center;color:var(--tx3);font-size:13.5px;line-height:1.6}
 
+  .admin-hilfe{padding:13px 16px;border-top:1px solid var(--line);color:var(--tx3);
+    font-size:12.5px;line-height:2}
+  .admin-hilfe code{background:var(--card2);border:1px solid var(--line);padding:2px 7px;
+    border-radius:6px;color:var(--tx2);font-size:11.5px}
+  .admin-hilfe b{color:var(--tx2)}
+
   .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:80;
     background:var(--card);border:1px solid var(--warn);color:var(--tx);font-size:13.5px;font-weight:600;
     padding:12px 18px;border-radius:12px;box-shadow:var(--shadow);display:none}
@@ -220,11 +226,11 @@ const $$ = (s,el=document)=>[...el.querySelectorAll(s)];
 const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const b64zu = s => Uint8Array.from(atob(s), c=>c.charCodeAt(0));
 
+/* OHNE "Noten" — Notenlisten sind personenbezogen und bleiben offline. */
 const KATEGORIEN = [
   { key:"skripte",    name:"Skripte",   icon:"📘" },
   { key:"pruefungen", name:"Prüfungen", icon:"📝" },
   { key:"aufgaben",   name:"Aufgaben",  icon:"✏️" },
-  { key:"noten",      name:"Noten",     icon:"📊" },
   { key:"sonstiges",  name:"Sonstiges", icon:"🗂️" },
 ];
 const REFERENTIEL_SLOTS = [
@@ -333,7 +339,7 @@ async function ladeDaten(session){
     const kl = klassen[m.klasse] ??= { key:m.klasse, name:m.name, faecher:[], module:{}, bereiche:new Set() };
     if(m.faecher && m.faecher.length) kl.faecher = m.faecher;
     if(m.bereich==="skripte"){ kl.bereiche.add("skripte"); }
-    else { ["pruefungen","aufgaben","noten","sonstiges","referentiels"].forEach(b=>kl.bereiche.add(b)); }
+    else { ["pruefungen","aufgaben","sonstiges","referentiels"].forEach(b=>kl.bereiche.add(b)); }
 
     for(const [mk, bereiche] of Object.entries(m.module||{})){
       const ziel = kl.module[mk] ??= {};
@@ -469,9 +475,41 @@ function renderHome(){
       <div class="go">Öffnen →</div>
     </button>`;
   }).join("");
-  $("#view").innerHTML = tiles
+  $("#view").innerHTML = (tiles
     ? `<div class="grid">${tiles}</div>`
-    : `<div class="empty-note">Für diese Klasse sind noch keine Fächer hinterlegt.</div>`;
+    : `<div class="empty-note">Für diese Klasse sind noch keine Fächer hinterlegt.</div>`)
+    + renderAdminKarte();
+}
+
+/* Verwaltungs-Karte — erscheint nur in der Admin-Sicht. Ein statisches Portal
+   kann das Repo nicht selbst verändern; verwaltet wird lokal per verwaltung.py. */
+function renderAdminKarte(){
+  if(!SESSION || SESSION.rolle!=="admin") return "";
+  const zeilen = Object.values(DATEN.klassen).sort((a,b)=>a.key.localeCompare(b.key)).map(kl=>{
+    let n=0;
+    Object.values(kl.module).forEach(m=>Object.values(m).forEach(v=>{
+      if(Array.isArray(v)) n+=v.length;
+      else if(v) n+=(v.formation?1:0)+(v.evaluation?1:0)+((v.weitere||[]).length);
+    }));
+    return `<li class="docrow"><span class="di">🏫</span>
+      <span class="dn">${esc(kl.name)}</span>
+      <span class="dg">${kl.faecher.length} Fächer · ${n} Datei(en) online</span></li>`;
+  }).join("");
+  return `<section class="cat modref" style="--fach:var(--accent)">
+    <h3><span class="ic">🛠️</span> Verwaltung <span class="hint-sub">nur in der Admin-Sicht</span></h3>
+    <ul class="doclist">${zeilen}</ul>
+    <div class="admin-hilfe">
+      <b>Neue Datei:</b> PDF in den OneDrive-Bereichsordner legen → <code>python3 build.py</code> → pushen.
+      Skripte sehen Klasse&nbsp;+&nbsp;Profs, alles andere nur Profs.<br>
+      <b>Verwalten (Terminal, im Portal-Ordner):</b>
+      <code>python3 verwaltung.py klasse DP1ET</code> neue Klasse ·
+      <code>python3 verwaltung.py prof "Name"</code> neuer Kollege ·
+      <code>python3 verwaltung.py passwort DP2ET</code> Passwort neu ·
+      <code>python3 verwaltung.py liste</code> Übersicht<br>
+      <b>📊 Noten:</b> bleiben grundsätzlich offline — Noten-Dashboard liegt lokal im
+      OneDrive-Dashboard-Ordner und wird nie hochgeladen.
+    </div>
+  </section>`;
 }
 
 function docRow(d, mitGroesse=true){

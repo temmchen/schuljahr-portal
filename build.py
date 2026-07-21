@@ -46,14 +46,16 @@ KONFIG = HIER / "zugangsdaten.json"
 
 PBKDF2_ITER = 600_000
 
-# Bereiche wie im bisherigen Schuljahr-Dashboard (Ordnernamen identisch)
+# Bereiche wie im bisherigen Schuljahr-Dashboard (Ordnernamen identisch).
+# BEWUSST OHNE "Noten": Notenlisten sind personenbezogene Daten und dürfen
+# NICHT online — sie bleiben lokal (Noten-Dashboard offline, siehe README).
 KATEGORIEN = [
     ("skripte",    "Skripte"),
     ("pruefungen", "Pruefungen"),
     ("aufgaben",   "Aufgaben"),
-    ("noten",      "Noten"),
     ("sonstiges",  "Sonstiges"),
 ]
+NIE_HOCHLADEN = "Noten"   # Ordner wird beim Build ignoriert (nur Hinweis ausgegeben)
 SCHUELER_BEREICHE = {"skripte"}          # Schüler sehen NUR Skripte
 REFERENTIELS_ORDNER = "Referentiels"
 
@@ -318,6 +320,10 @@ def main():
                 mdir = basis / mk
                 if not mdir.is_dir():
                     print(f"  ⚠️  Modul-Ordner fehlt (Modul erscheint leer): {mdir}")
+                noten_dateien = sammle_dateien(mdir / NIE_HOCHLADEN)
+                if noten_dateien:
+                    print(f"  🔒 {mk}/{NIE_HOCHLADEN}: {len(noten_dateien)} Datei(en) bleiben "
+                          f"OFFLINE (werden nie hochgeladen)")
                 sk = [{"name": anzeige_name(p), "typ": p.suffix.lstrip(".").lower(), "_pfad": str(p)}
                       for p in sammle_dateien(mdir / "Skripte")]
                 skripte_module[mk] = {"skripte": sk}
