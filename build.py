@@ -27,6 +27,7 @@ import base64
 import json
 import secrets
 import shutil
+import subprocess
 import sys
 import unicodedata
 from datetime import date
@@ -179,6 +180,23 @@ def lege_beispiele_an(inhalt: Path, klassen: list):
 
 # ─────────────────────────── Haupt-Build ────────────────────────────────────
 
+def warne_wenn_github_voraus():
+    """Browser-Uploads landen direkt auf GitHub — dieser Build würde sie
+    überschreiben, wenn sie nicht vorher gepullt UND in OneDrive abgelegt sind."""
+    try:
+        subprocess.run(["git", "-C", str(HIER), "fetch", "--quiet", "origin", "main"],
+                       timeout=8, check=False)
+        r = subprocess.run(["git", "-C", str(HIER), "rev-list", "--count", "HEAD..origin/main"],
+                           capture_output=True, text=True, timeout=5)
+        anzahl = int((r.stdout or "0").strip() or 0)
+        if anzahl:
+            print(f"⚠️  GitHub ist {anzahl} Commit(s) voraus (vermutlich Browser-Uploads).")
+            print("   Erst  git pull  ausführen — und über das Portal hochgeladene Dateien")
+            print("   zusätzlich in den OneDrive-Ordner legen, sonst löscht dieser Build sie!\n")
+    except Exception:
+        pass  # offline oder kein Remote — Build läuft normal weiter
+
+
 def main():
     parser = argparse.ArgumentParser(description="Schuljahr-Portal verschlüsselt bauen")
     parser.add_argument("--beispiele", action="store_true",
@@ -188,6 +206,7 @@ def main():
     if not KONFIG.is_file():
         sys.exit("zugangsdaten.json fehlt — Vorlage: zugangsdaten.beispiel.json")
     cfg = json.loads(KONFIG.read_text(encoding="utf-8"))
+    warne_wenn_github_voraus()
 
     inhalt = Path(cfg["inhalt"]).expanduser()
     if not inhalt.is_dir():

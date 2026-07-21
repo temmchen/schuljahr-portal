@@ -168,6 +168,26 @@
   .docrow .dl:hover{color:var(--fach);border-color:var(--fach)}
   .cat-empty{padding:18px 15px;text-align:center;color:var(--tx3);font-size:13.5px;line-height:1.6}
 
+  .admin-upload{padding:13px 16px;border-top:1px solid var(--line);color:var(--tx2);font-size:13px}
+  .admin-upload .up-sub{margin-left:8px;font-size:11.5px;color:var(--tx3);font-weight:600}
+  .up-zeile{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}
+  .up-zeile select,.up-zeile input{background:var(--card2);border:1px solid var(--line2);
+    color:var(--tx);font:inherit;font-size:13px;padding:8px 10px;border-radius:9px}
+  .up-zeile select:focus,.up-zeile input:focus{outline:none;border-color:var(--accent)}
+  .up-zeile input[type=file]{flex:1;min-width:180px}
+  .up-zeile input[type=password]{flex:1;min-width:180px}
+  .up-btn{background:var(--accent);color:#0a0f1a;font-weight:750}
+  :root[data-theme="light"] .up-btn{color:#fff}
+  @media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .up-btn{color:#fff}}
+  .up-btn:disabled{opacity:.55;cursor:wait}
+  .up-status{margin-top:8px;min-height:18px;font-size:12.5px;font-weight:600;color:var(--tx2)}
+  .up-merken{margin-top:9px;padding:9px 11px;border:1px solid color-mix(in srgb,var(--warn) 45%,transparent);
+    border-radius:9px;background:color-mix(in srgb,var(--warn) 7%,transparent);
+    font-size:12px;line-height:1.8;color:var(--tx3)}
+  .up-merken code,.admin-upload code{background:var(--card2);border:1px solid var(--line);
+    padding:1px 6px;border-radius:6px;color:var(--tx2);font-size:11px}
+  .up-merken a{color:var(--accent);font-weight:600}
+
   .admin-hilfe{padding:13px 16px;border-top:1px solid var(--line);color:var(--tx3);
     font-size:12.5px;line-height:2}
   .admin-hilfe code{background:var(--card2);border:1px solid var(--line);padding:2px 7px;
@@ -238,10 +258,13 @@ const REFERENTIEL_SLOTS = [
   { key:"evaluation", name:"Référentiel d'évaluation" },
 ];
 const AKZENTE = { eltec:"var(--eltec)", mint:"var(--mint)", prodi:"var(--prodi)" };
-const MIME = { pdf:"application/pdf", html:"text/html", htm:"text/html", txt:"text/plain",
-  png:"image/png", jpg:"image/jpeg", jpeg:"image/jpeg", gif:"image/gif", svg:"image/svg+xml",
+/* html/htm/svg fehlen BEWUSST: sie würden same-origin ausgeführt und könnten
+   Sitzungs-Schlüssel/Token auslesen — solche Dateien gibt es nur als Download. */
+const MIME = { pdf:"application/pdf", txt:"text/plain",
+  png:"image/png", jpg:"image/jpeg", jpeg:"image/jpeg", gif:"image/gif",
   mp4:"video/mp4", webm:"video/webm", mp3:"audio/mpeg" };
 const mime = typ => MIME[typ] || "application/octet-stream";
+const SICHER_ANZEIGEN = new Set(["pdf","png","jpg","jpeg","gif","txt","mp4","webm","mp3"]);
 const akzent = a => AKZENTE[a] || (a && (a.startsWith("#")||a.startsWith("var(")) ? a : "var(--accent)");
 const FILE_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v5h5"/><path d="M7 3h8l5 5v11a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/></svg>';
 const DL_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>';
@@ -272,12 +295,21 @@ async function entschluesseleJSON(key, ivB64, ctB64){
   return JSON.parse(new TextDecoder().decode(klar));
 }
 async function importiereVaultKey(kB64){
-  return crypto.subtle.importKey("raw", b64zu(kB64), {name:"AES-GCM"}, false, ["decrypt"]);
+  /* encrypt zusätzlich zu decrypt: der Admin-Upload verschlüsselt im Browser */
+  return crypto.subtle.importKey("raw", b64zu(kB64), {name:"AES-GCM"}, false, ["encrypt","decrypt"]);
 }
 async function entschluesseleBlock(key, puffer){
   const bytes = new Uint8Array(puffer);
   if(bytes.length < 13) throw new Error("Datei beschädigt");
   return crypto.subtle.decrypt({name:"AES-GCM", iv:bytes.slice(0,12)}, key, bytes.slice(12));
+}
+async function verschluesseleBlock(key, klartextBuf){
+  /* Gegenstück zu build.py: 12-B-Nonce || AES-256-GCM-Chiffrat */
+  const nonce = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM", iv:nonce}, key, klartextBuf));
+  const aus = new Uint8Array(12 + ct.length);
+  aus.set(nonce); aus.set(ct, 12);
+  return aus;
 }
 
 /* ═══════════════════════════ Zustand ════════════════════════════════════ */
@@ -338,8 +370,9 @@ async function ladeDaten(session){
 
     const kl = klassen[m.klasse] ??= { key:m.klasse, name:m.name, faecher:[], module:{}, bereiche:new Set() };
     if(m.faecher && m.faecher.length) kl.faecher = m.faecher;
-    if(m.bereich==="skripte"){ kl.bereiche.add("skripte"); }
-    else { ["pruefungen","aufgaben","sonstiges","referentiels"].forEach(b=>kl.bereiche.add(b)); }
+    if(m.bereich==="skripte"){ kl.bereiche.add("skripte"); kl.vaultSkripte = v.id; }
+    else { ["pruefungen","aufgaben","sonstiges","referentiels"].forEach(b=>kl.bereiche.add(b));
+           kl.vaultIntern = v.id; }
 
     for(const [mk, bereiche] of Object.entries(m.module||{})){
       const ziel = kl.module[mk] ??= {};
@@ -495,13 +528,42 @@ function renderAdminKarte(){
       <span class="dn">${esc(kl.name)}</span>
       <span class="dg">${kl.faecher.length} Fächer · ${n} Datei(en) online</span></li>`;
   }).join("");
+  const ersteKlasse = Object.keys(DATEN.klassen).sort()[0];
   return `<section class="cat modref" style="--fach:var(--accent)">
     <h3><span class="ic">🛠️</span> Verwaltung <span class="hint-sub">nur in der Admin-Sicht</span></h3>
     <ul class="doclist">${zeilen}</ul>
+    <div class="admin-upload">
+      <b>📤 Datei direkt hochladen</b> <span class="up-sub">verschlüsselt im Browser → GitHub → nach 1–2 min online</span>
+      <div class="up-zeile">
+        <select id="upKlasse" aria-label="Klasse">${Object.keys(DATEN.klassen).sort().map(k=>
+          `<option value="${esc(k)}">${esc(DATEN.klassen[k].name)}</option>`).join("")}</select>
+        <select id="upModul" aria-label="Modul">${adminModulOptionen(ersteKlasse)}</select>
+        <select id="upBereich" aria-label="Bereich">
+          <option value="skripte">📘 Skripte (Klasse + Profs)</option>
+          <option value="pruefungen">📝 Prüfungen (nur Profs)</option>
+          <option value="aufgaben">✏️ Aufgaben (nur Profs)</option>
+          <option value="sonstiges">🗂️ Sonstiges (nur Profs)</option>
+        </select>
+      </div>
+      <div class="up-zeile">
+        <input type="file" id="upDatei" aria-label="Datei">
+        <input type="password" id="upToken" placeholder="GitHub-Token (fine-grained)"
+          autocomplete="off" value="${esc(tokenLesen())}" aria-label="GitHub-Token">
+        <button class="btn up-btn" id="upStart">Verschlüsseln &amp; hochladen</button>
+      </div>
+      <div class="up-status" id="upStatus"></div>
+      <div class="up-merken">⚠️ <b>Danach die Datei auch in den OneDrive-Ordner legen!</b>
+        Der Mac-Build (<code>build.py</code>) baut aus OneDrive — was dort fehlt, verschwindet
+        beim nächsten Build wieder aus dem Portal. Vor dem nächsten Mac-Build: <code>git pull</code>.<br>
+        Token: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank"
+        rel="noopener">github.com/settings/personal-access-tokens/new</a> — Repository access:
+        <i>Only select repositories</i> → <code>schuljahr-portal</code>, Permission:
+        <i>Contents — Read and write</i>. Wird nur in dieser Browser-Sitzung gemerkt.
+        Référentiels &amp; Noten gehen weiter nur über den Mac-Weg.</div>
+    </div>
     <div class="admin-hilfe">
-      <b>Neue Datei:</b> PDF in den OneDrive-Bereichsordner legen → <code>python3 build.py</code> → pushen.
-      Skripte sehen Klasse&nbsp;+&nbsp;Profs, alles andere nur Profs.<br>
-      <b>Verwalten (Terminal, im Portal-Ordner):</b>
+      <b>Am Mac:</b> Datei in den OneDrive-Bereichsordner legen → <code>python3 build.py</code> → pushen.
+      <b>Verwalten:</b>
       <code>python3 verwaltung.py klasse DP1ET</code> neue Klasse ·
       <code>python3 verwaltung.py prof "Name"</code> neuer Kollege ·
       <code>python3 verwaltung.py passwort DP2ET</code> Passwort neu ·
@@ -510,6 +572,94 @@ function renderAdminKarte(){
       OneDrive-Dashboard-Ordner und wird nie hochgeladen.
     </div>
   </section>`;
+}
+
+/* ─────────────────────── Admin-Upload (GitHub-API) ─────────────────────── */
+const REPO = "temmchen/schuljahr-portal";
+const TOKEN_KEY = "portal_gh_token";
+function tokenLesen(){ try{ return sessionStorage.getItem(TOKEN_KEY)||""; }catch(e){ return ""; } }
+function adminModulOptionen(klasse){
+  const kl = DATEN.klassen[klasse];
+  const opts = [];
+  (kl?.faecher||[]).forEach(f=>{ [1,2].forEach(sem=>{
+    if(f.modul[sem]) opts.push(`<option value="${esc(modulKey(f,sem))}">${esc(f.modul[sem])}</option>`); });});
+  return opts.join("");
+}
+async function ghAPI(pfad, opts, token){
+  const r = await fetch(`https://api.github.com/repos/${REPO}/${pfad}`, {
+    ...opts,
+    headers: { "Authorization": "Bearer "+token, "Accept": "application/vnd.github+json",
+               "X-GitHub-Api-Version": "2022-11-28", ...(opts.headers||{}) }});
+  if(!r.ok){
+    let detail=""; try{ detail=(await r.json()).message||""; }catch(e){}
+    if(r.status===401) throw new Error("Token ungültig oder abgelaufen (401).");
+    if(r.status===403) throw new Error("Token hat keine Schreibrechte für dieses Repo (403).");
+    if(r.status===404) throw new Error("Nicht gefunden (404) — Token-Repo-Zugriff prüfen.");
+    throw new Error(`GitHub ${r.status}: ${detail}`);
+  }
+  return r.json();
+}
+function b64ausBytes(bytes){
+  let s=""; const N=0x8000;
+  for(let i=0;i<bytes.length;i+=N) s += String.fromCharCode.apply(null, bytes.subarray(i, i+N));
+  return btoa(s);
+}
+async function adminUpload(){
+  const status = $("#upStatus"), knopf = $("#upStart");
+  const setze = t => { status.textContent = t; };
+  const klasse = $("#upKlasse").value, mk = $("#upModul").value, bereich = $("#upBereich").value;
+  const datei = $("#upDatei").files[0];
+  const token = $("#upToken").value.trim();
+  if(!datei){ setze("Bitte zuerst eine Datei auswählen."); return; }
+  if(!token){ setze("Bitte GitHub-Token eintragen (Anleitung unten)."); return; }
+  if(datei.size > 90*1024*1024){ setze("Datei zu groß — GitHub-Limit ist 100 MB, bitte am Mac hochladen."); return; }
+  const kl = DATEN.klassen[klasse];
+  const vid = bereich==="skripte" ? kl.vaultSkripte : kl.vaultIntern;
+  const v = SESSION.vaults.find(x=>x.id===vid);
+  if(!v){ setze("Kein Zugriff auf diesen Bereich."); return; }
+  const name = datei.name.normalize("NFC").replace(/\.[^.]+$/,"").replace(/_/g," ").trim() || "Dokument";
+  const typ = (datei.name.match(/\.([A-Za-z0-9]+)$/)||[,""])[1].toLowerCase();
+  knopf.disabled = true;
+  try{
+    try{ sessionStorage.setItem(TOKEN_KEY, token); }catch(e){}
+    let key = vaultKeyCache.get(v.id);
+    if(!key){ key = await importiereVaultKey(v.k); vaultKeyCache.set(v.id, key); }
+    setze("Verschlüssele „" + name + "“ …");
+    const enc = await verschluesseleBlock(key, await datei.arrayBuffer());
+    const fid = [...crypto.getRandomValues(new Uint8Array(12))]
+      .map(b=>b.toString(16).padStart(2,"0")).join("");
+    setze("Lade aktuelles Manifest von GitHub …");
+    const mAntwort = await ghAPI(`contents/docs/vaults/${vid}/m.enc?ref=main`, {}, token);
+    const mBytes = b64zu(mAntwort.content.replace(/\s/g,""));
+    const manifest = JSON.parse(new TextDecoder().decode(await entschluesseleBlock(key, mBytes)));
+    const liste = ((manifest.module[mk] ??= {})[bereich] ??= []);
+    if(liste.some(e=>(e.name||"").normalize("NFC")===name)){
+      setze(`„${name}" gibt es in diesem Bereich schon — bitte umbenennen oder am Mac aufräumen.`);
+      knopf.disabled = false; return;
+    }
+    const eintrag = { name, typ, id: fid, groesse: datei.size };
+    liste.push(eintrag);
+    liste.sort((a,b)=>a.name.localeCompare(b.name,"de"));
+    const mNeu = await verschluesseleBlock(key, new TextEncoder().encode(JSON.stringify(manifest)));
+    setze("Lade verschlüsselte Datei hoch …");
+    await ghAPI(`contents/docs/vaults/${vid}/f/${fid}.enc`, {method:"PUT", body: JSON.stringify({
+      message:`Portal-Upload: ${bereich}/${mk}`, branch:"main", content: b64ausBytes(enc)})}, token);
+    setze("Aktualisiere Manifest …");
+    await ghAPI(`contents/docs/vaults/${vid}/m.enc`, {method:"PUT", body: JSON.stringify({
+      message:`Portal-Upload Manifest: ${bereich}/${mk}`, branch:"main",
+      sha: mAntwort.sha, content: b64ausBytes(mNeu)})}, token);
+    const lokal = ((DATEN.klassen[klasse].module[mk] ??= {})[bereich] ??= []);
+    lokal.push({ ...eintrag, vault: vid });
+    lokal.sort((a,b)=>a.name.localeCompare(b.name,"de"));
+    setze("");
+    toast(`✅ „${name}" hochgeladen — in 1–2 min für alle sichtbar. Jetzt noch in OneDrive ablegen!`);
+    $("#upDatei").value = "";
+    render();
+  }catch(e){
+    setze("Fehler: " + e.message);
+  }finally{
+    knopf.disabled = false;
+  }
 }
 
 function docRow(d, mitGroesse=true){
@@ -584,14 +734,16 @@ async function holeBlobURL(vaultId, dateiId, typ){
 }
 function ladeHerunter(url, name, typ){
   const a = document.createElement("a");
-  a.href = url; a.download = /\.[a-z0-9]{1,5}$/i.test(name) ? name : `${name}.${typ||"pdf"}`;
+  a.href = url;
+  a.download = /\.[a-z0-9]{1,5}$/i.test(name) ? name : (typ ? `${name}.${typ}` : name);
   document.body.appendChild(a); a.click(); a.remove();
 }
 function oeffneDatei(btn){
   const {vault, id, typ, name, dl} = btn.dataset;
+  const nurDownload = !!dl || !SICHER_ANZEIGEN.has(typ);
   btn.disabled = true;
   let fenster = null;
-  if(!dl){
+  if(!nurDownload){
     fenster = window.open("", "_blank");
     if(fenster){
       fenster.document.title = name;
@@ -602,8 +754,11 @@ function oeffneDatei(btn){
     }
   }
   holeBlobURL(vault, id, typ).then(url=>{
-    if(dl){ ladeHerunter(url, name, typ); }
-    else if(fenster){ fenster.location.replace(url); }
+    if(nurDownload){
+      ladeHerunter(url, name, typ);
+      if(!dl) toast("Dieser Dateityp wird aus Sicherheitsgründen heruntergeladen statt angezeigt.");
+    }
+    else if(fenster){ fenster.location.replace(url); try{ fenster.opener = null; }catch(e){} }
     else { ladeHerunter(url, name, typ); toast("Pop-up blockiert — Datei wurde stattdessen heruntergeladen."); }
   }).catch(()=>{
     if(fenster) fenster.close();
@@ -613,11 +768,15 @@ function oeffneDatei(btn){
 
 /* ═══════════════════════════ Navigation & Kopf ══════════════════════════ */
 $("#view").addEventListener("click", e=>{
+  if(e.target.closest("#upStart")){ adminUpload(); return; }
   const open = e.target.closest(".open,.dl");
   if(open){ oeffneDatei(open); return; }
   const tile = e.target.closest(".tile");
   if(tile){ state.view="detail"; state.modul=tile.dataset.modul; render(); return; }
   if(e.target.closest(".back")){ state.view="home"; state.modul=null; render(); }
+});
+$("#view").addEventListener("change", e=>{
+  if(e.target.id==="upKlasse"){ $("#upModul").innerHTML = adminModulOptionen(e.target.value); }
 });
 $("#klassenSelect").addEventListener("change", e=>{
   state.klasse = e.target.value;

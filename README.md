@@ -37,6 +37,21 @@ auch nicht durch Manipulation der Webseite.
    ```
 3. Nach 1–2 Minuten ist die Datei online — verschlüsselt.
 
+### Upload direkt im Browser (Admin, z. B. unterwegs)
+
+In der Admin-Sicht des Portals gibt es ein Upload-Panel: Klasse/Modul/Bereich
+wählen, Datei auswählen, GitHub-Token eintragen → die Datei wird **im Browser
+verschlüsselt** und per GitHub-API committet (nach 1–2 min online). Das Token
+ist ein *fine-grained personal access token* nur für dieses Repo mit
+**Contents: Read and write** ([anlegen](https://github.com/settings/personal-access-tokens/new));
+es wird nur in der Browser-Sitzung gehalten.
+
+> ⚠️ **OneDrive bleibt die Quelle der Wahrheit:** Eine im Browser hochgeladene
+> Datei danach auch in den OneDrive-Bereichsordner legen! `build.py` baut
+> alles aus OneDrive neu — was dort fehlt, fliegt beim nächsten Build wieder
+> raus. Vor dem nächsten Mac-Build außerdem `git pull` (build.py warnt, wenn
+> GitHub voraus ist).
+
 Der Dateiname (ohne Endung, `_` → Leerzeichen) wird zum Anzeigenamen.
 Ordner-Konvention pro Modul: `Skripte/ Pruefungen/ Aufgaben/ Sonstiges/ Referentiels/`
 (im `Referentiels/`-Ordner werden Dateien mit „formation" bzw. „evaluation" im Namen
