@@ -396,7 +396,7 @@ async function ladeDaten(session){
 function sessionSpeichern(s){ try{ sessionStorage.setItem(SESSION_KEY, JSON.stringify(s)); }catch(e){} }
 function sessionLesen(){ try{ return JSON.parse(sessionStorage.getItem(SESSION_KEY)||"null"); }catch(e){ return null; } }
 function abmelden(){
-  try{ sessionStorage.removeItem(SESSION_KEY); }catch(e){}
+  try{ sessionStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(TOKEN_KEY); }catch(e){}
   blobCache.forEach(url=>URL.revokeObjectURL(url));
   location.reload();
 }
