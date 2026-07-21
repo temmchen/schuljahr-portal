@@ -1,0 +1,24 @@
+{
+  "schuljahr": "2026 – 2027",
+  "inhalt": "/Users/tbr/Library/CloudStorage/OneDrive-365education/KI/en cours de travail études/Dashboard",
+
+  "klassen": [
+    {
+      "key": "DP2ET",
+      "name": "DP2ET",
+      "passwort": "HIER-KLASSEN-PASSWORT",
+      "faecher": [
+        { "key": "ELTEC", "name": "ELTEC", "accent": "eltec", "modul": { "1": "ELTEC 3", "2": "ELTEC 4" } },
+        { "key": "MINT",  "name": "MINT",  "accent": "mint",  "modul": { "1": "MINT 3",  "2": "MINT 4" } },
+        { "key": "PRODI", "name": "PRODI", "accent": "prodi", "modul": { "1": "PRODI 1", "2": "PRODI 2" } }
+      ]
+    }
+  ],
+
+  "profs": [
+    { "name": "Kollege A", "passwort": "HIER-PROF-PASSWORT-A" },
+    { "name": "Kollege B", "passwort": "HIER-PROF-PASSWORT-B" }
+  ],
+
+  "admin": { "name": "Tom Bleyer", "passwort": "HIER-ADMIN-PASSWORT" }
+}

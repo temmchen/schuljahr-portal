@@ -1,0 +1,76 @@
+{
+ "v": 1,
+ "schuljahr": "2026 – 2027",
+ "erstellt": "2026-07-21",
+ "kdf": {
+  "typ": "PBKDF2-SHA256",
+  "iter": 600000
+ },
+ "principals": [
+  {
+   "id": "p0",
+   "salt": "/NLtpVv9wexGcd5lU8IEgA=="
+  },
+  {
+   "id": "p1",
+   "salt": "toBYkCoqo73KIz4a8eP4DA=="
+  },
+  {
+   "id": "p2",
+   "salt": "M4arWtqJ0+X0R+h9nEZqNA=="
+  },
+  {
+   "id": "p3",
+   "salt": "6cD0SXjHbNGeReCGkLwNnw=="
+  }
+ ],
+ "vaults": [
+  {
+   "id": "a429006e9c89da04",
+   "wraps": [
+    {
+     "iv": "p+TK4VhWVaYVZPhb",
+     "ct": "TCOYQXi1T7J/rWnQ3W8Np2Nubct7oAyNJEek7IwhB39cPiFDDnfL8fp66xAXUD3kjPY5ddin9jAau+jPdtJY/NPybrpD2h5DbQhBuf2WGhPUpohJhAKjduOi3lW6Am+51oPKVICFF+bnS91qmlCCFnaLlp/SDgkl+QjMb3782NOM0DG7SY0=",
+     "p": "p0"
+    },
+    {
+     "iv": "wi9fwRt65SkqWHdx",
+     "ct": "fVPwMopCYsGlUpn4YqXgtrBjha1VhIP2FeOP4DMYPlcVzn2IFuuSsqb74CQEtkF6VjJcgAVTg2EZfXiDWD+0y08ZtNR+2WQfDppB74dIOvBj7ryYhDS55aL8WWmHIL+xL1qlxu3R73HJBc4Eb/jy7LM3XceXQz+jxfKaOw==",
+     "p": "p1"
+    },
+    {
+     "iv": "lwP7AwK8qSDC6shl",
+     "ct": "C4qQ2yE+uJCHzZ3Kg0iT+ZLdibJ+nYvIGvAlTVLMble3AwJSVoZ1XRmdVMFda88m2SQUMhA+nGnuRMx83MbaIqichSLjBoXJRhqC1tDFqGQU/FEC48cOWwW5Xn8rD6xLiH6N0F0BCIPoA/L+lx4B5sEEfptrncjUKENdMw==",
+     "p": "p2"
+    },
+    {
+     "iv": "IeltPphfNPiD0L38",
+     "ct": "IxXgI6VBRPv0tX/BvUj2JTtwtzpizcxjFh6J6ftQIwSFM05hKxB+AGi+rdm62Ax1ub6dnKk17DqXp4jJDuuegzUKz1x5ytHHWjy3c8+yPgCJLokfFmJcv84WBYhiBjxSRyqaGSbjXgGZj3rsJbNLXfoLjvElfTyQ5VW1P+kK",
+     "p": "p3"
+    }
+   ],
+   "manifest": "vaults/a429006e9c89da04/m.enc"
+  },
+  {
+   "id": "148afd9bf498a1d5",
+   "wraps": [
+    {
+     "iv": "NOXcnL/bYnFqSRsR",
+     "ct": "pSfzabS4FJkuVVzHqdN7DNXbAXGNMzjamAH4k344QORFOzYRJMHcVQ5Vii7VjcCG4NgG88Q84x/YacxsFgv+5t28sfqg6t5Sx+oZsVAJQzUxiA8Hxx1/4jSs2U2PfxGZ88TP7egNAWknnPkzKS+tUhxSXl8mZEyQTSOVPQ==",
+     "p": "p1"
+    },
+    {
+     "iv": "QFOAFzt593nSPvij",
+     "ct": "Fbnp1mfrYIRzPp6WoYQzZZF+X1v0rS0L2wyFaGpKWdgZwkz0HTuMg/nQaAftXQQcG3z9/Gd2MOiyfwFoz5BAA00PvMtmR/YN+q2HYzXwjv3vnfDXNOYc9FkHnMAl4gKxk0rfxZHBmoEF3xxBVusFwSbU2yJ3owUs03XuWA==",
+     "p": "p2"
+    },
+    {
+     "iv": "kIlS1r3BpKwiNWea",
+     "ct": "/lEY56AbYos0Q1c5iYCUXnJvacsEG1JGjpKtYpFBpDtihbVnC2d6xN5VrMBAzgeAeHmPtjJ90RTlSYuhUbTSdctOYVJdA9DSeO48G4x8OcMNUjd3EMnkorH2BknZwKEkV6mnKSunzhvLi72MuTcxy4AgQGUxJtAKUzD41E8H",
+     "p": "p3"
+    }
+   ],
+   "manifest": "vaults/148afd9bf498a1d5/m.enc"
+  }
+ ]
+}

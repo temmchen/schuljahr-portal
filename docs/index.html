@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1420">
+<meta name="robots" content="noindex">
+<title>Schuljahr-Portal</title>
+<script>
+/* Theme sofort setzen (verhindert Aufblitzen beim Laden) */
+(function(){try{var v=localStorage.getItem("dash_theme");
+  if(v!=="light"&&v!=="dark"){v=(window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches)?"light":"dark";}
+  document.documentElement.setAttribute("data-theme",v);}catch(e){}})();
+</script>
+<style>
+  :root{
+    --bg:#0f1420; --bg2:#151b2b; --card:#1b2233; --card2:#212a3e;
+    --line:#2a3550; --line2:#38455f;
+    --tx:#eef2fb; --tx2:#aab5cc; --tx3:#7684a0;
+    --accent:#6ea8fe;
+    --eltec:#3b82f6; --mint:#14b8a6; --prodi:#f59e0b;
+    --ok:#34d399; --warn:#f87171;
+    --radius:16px; --radius-s:11px;
+    --shadow:0 8px 30px rgba(0,0,0,.35);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg:#eef1f7; --bg2:#e6eaf3; --card:#ffffff; --card2:#f6f8fc;
+      --line:#dde3ee; --line2:#cfd7e6;
+      --tx:#141a26; --tx2:#4a566b; --tx3:#7a869c;
+      --ok:#059669; --warn:#dc2626;
+      --shadow:0 8px 26px rgba(30,45,80,.10);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#eef1f7; --bg2:#e6eaf3; --card:#ffffff; --card2:#f6f8fc;
+    --line:#dde3ee; --line2:#cfd7e6;
+    --tx:#141a26; --tx2:#4a566b; --tx3:#7a869c;
+    --ok:#059669; --warn:#dc2626;
+    --shadow:0 8px 26px rgba(30,45,80,.10);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:
+     radial-gradient(1200px 600px at 80% -10%, color-mix(in srgb,var(--accent) 12%, transparent), transparent 60%),
+     var(--bg);color:var(--tx);min-height:100%;-webkit-text-size-adjust:100%}
+  body{padding:0 clamp(14px,3vw,40px) 60px}
+  a{color:inherit;text-decoration:none}
+
+  /* ---------- Header ---------- */
+  header.top{position:sticky;top:0;z-index:30;margin:0 clamp(-14px,-3vw,-40px);
+    padding:14px clamp(14px,3vw,40px);backdrop-filter:saturate(160%) blur(14px);
+    background:color-mix(in srgb,var(--bg) 78%, transparent);border-bottom:1px solid var(--line)}
+  .top-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:13px}
+  .logo{width:44px;height:44px;border-radius:12px;flex:none;display:grid;place-items:center;
+    background:linear-gradient(140deg,var(--eltec),var(--prodi));color:#fff;font-weight:800;font-size:18px;
+    box-shadow:var(--shadow)}
+  .brand h1{font-size:16px;margin:0;letter-spacing:.2px}
+  .brand .sub{font-size:12.5px;color:var(--tx2);margin-top:1px}
+
+  .rolle-chip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;
+    background:var(--card);border:1px solid var(--line2);color:var(--tx2);
+    padding:8px 13px;border-radius:11px}
+  .rolle-chip .dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+
+  .klass-select{appearance:none;-webkit-appearance:none;
+    background:var(--card);border:1px solid var(--line2);color:var(--tx);font-weight:800;font-size:15px;
+    padding:10px 36px 10px 15px;border-radius:12px;cursor:pointer;box-shadow:var(--shadow);
+    background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="%237684a0" stroke-width="2.6" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>');
+    background-repeat:no-repeat;background-position:right 12px center}
+  .klass-select:hover,.klass-select:focus{outline:none;border-color:var(--accent)}
+
+  .seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px;gap:2px}
+  .seg button{border:0;background:transparent;color:var(--tx2);font-weight:600;font-size:13.5px;
+    padding:8px 15px;border-radius:9px;cursor:pointer;white-space:nowrap;transition:.15s}
+  .seg button:hover{color:var(--tx)}
+  .seg button.on{background:var(--accent);color:#0a0f1a}
+  @media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .seg button.on{color:#fff}}
+  :root[data-theme="light"] .seg button.on{color:#fff}
+
+  .btn{border:0;cursor:pointer;font-weight:650;font-size:13.5px;padding:10px 15px;border-radius:12px;
+    display:inline-flex;align-items:center;gap:7px;transition:.15s}
+  .btn.ghost{background:var(--card);border:1px solid var(--line);color:var(--tx2)}
+  .btn.ghost:hover{color:var(--tx)}
+  .btn.icon{padding:10px 13px}
+  .spacer{margin-left:auto}
+  .nur-angemeldet{display:none}
+  body.angemeldet .nur-angemeldet{display:inline-flex}
+  body.angemeldet .nur-angemeldet.seg{display:flex}
+
+  /* ---------- Login ---------- */
+  .login-wrap{min-height:calc(100vh - 220px);display:grid;place-items:center;padding:30px 0}
+  .login-card{width:min(420px,94vw);background:var(--card);border:1px solid var(--line);
+    border-radius:20px;box-shadow:var(--shadow);padding:34px 32px;text-align:center}
+  .login-card .logo{width:58px;height:58px;font-size:22px;margin:0 auto 16px}
+  .login-card h2{margin:0 0 4px;font-size:21px}
+  .login-card .sub{color:var(--tx2);font-size:13.5px;margin-bottom:24px}
+  .login-card input[type=password]{width:100%;padding:13px 15px;border-radius:12px;font-size:16px;
+    border:1px solid var(--line2);background:var(--card2);color:var(--tx);outline:none;text-align:center;
+    letter-spacing:.5px}
+  .login-card input[type=password]:focus{border-color:var(--accent)}
+  .login-card button[type=submit]{width:100%;margin-top:14px;padding:13px;border:0;border-radius:12px;
+    background:var(--accent);color:#0a0f1a;font-weight:800;font-size:15px;cursor:pointer;transition:.15s}
+  :root[data-theme="light"] .login-card button[type=submit]{color:#fff}
+  @media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .login-card button[type=submit]{color:#fff}}
+  .login-card button[type=submit]:disabled{opacity:.55;cursor:wait}
+  .login-status{margin-top:14px;font-size:13px;min-height:20px;color:var(--tx2)}
+  .login-status.fehler{color:var(--warn);font-weight:600}
+  .login-info{margin-top:22px;padding-top:16px;border-top:1px solid var(--line);
+    color:var(--tx3);font-size:12px;line-height:1.7}
+
+  /* ---------- Übersicht: Fach-Kacheln ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:15px;margin-top:16px}
+  .tile{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--fach,var(--accent));
+    border-radius:var(--radius);padding:17px 18px;cursor:pointer;transition:.15s;box-shadow:var(--shadow);
+    display:flex;flex-direction:column;gap:14px;text-align:left;color:var(--tx);font:inherit}
+  .tile:hover{transform:translateY(-3px);border-color:var(--fach,var(--accent))}
+  .tile .thead{display:flex;align-items:center;gap:12px}
+  .tile .badge{width:44px;height:44px;border-radius:12px;flex:none;display:grid;place-items:center;
+    font-weight:800;font-size:13px;color:#fff;background:var(--fach)}
+  .tile .mod{font-weight:750;font-size:17px;line-height:1.1}
+  .tile .fach{font-size:12.5px;color:var(--tx2);margin-top:2px}
+  .tile .sem-tag{font-size:10.5px;font-weight:700;letter-spacing:.5px;color:var(--fach);
+    border:1px solid color-mix(in srgb,var(--fach) 45%,transparent);padding:2px 7px;border-radius:6px;margin-left:auto}
+  .tile .cats{display:flex;flex-wrap:wrap;gap:7px}
+  .tile .chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--tx2);
+    background:var(--card2);border:1px solid var(--line);padding:5px 10px;border-radius:9px}
+  .tile .chip b{color:var(--tx);font-weight:750}
+  .tile .chip.zero{opacity:.5}
+  .tile .go{font-size:12.5px;color:var(--fach);font-weight:650;display:flex;align-items:center;gap:5px}
+  .empty-note{margin-top:18px;color:var(--tx3);font-size:14px;background:var(--card);border:1px dashed var(--line2);
+    border-radius:var(--radius);padding:20px;text-align:center;line-height:1.6}
+
+  /* ---------- Unter-Dashboard (Detail) ---------- */
+  .detail{margin-top:22px}
+  .back{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--tx2);
+    background:var(--card);border:1px solid var(--line);padding:9px 14px;border-radius:11px;cursor:pointer;transition:.15s}
+  .back:hover{color:var(--tx)}
+  .dhead{display:flex;align-items:center;gap:15px;margin:20px 2px 6px}
+  .dhead .badge{width:52px;height:52px;border-radius:14px;flex:none;display:grid;place-items:center;
+    font-weight:800;font-size:15px;color:#fff;background:var(--fach);box-shadow:var(--shadow)}
+  .dhead .mod{font-size:24px;font-weight:800;line-height:1}
+  .dhead .path{font-size:12.5px;color:var(--tx2);margin-top:4px}
+
+  .cats-wrap{display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-top:18px;align-items:start}
+  .cat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+  .cat.modref{margin-top:18px}
+  .cat > h3{margin:0;padding:14px 16px;font-size:15px;font-weight:750;display:flex;align-items:center;gap:9px;
+    border-bottom:1px solid var(--line);background:linear-gradient(180deg,color-mix(in srgb,var(--fach) 14%,transparent),transparent)}
+  .cat > h3 .ic{font-size:17px}
+  .cat > h3 .hint-sub{margin-left:8px;font-size:11.5px;color:var(--tx2);font-weight:600}
+  .cat > h3 .cnt{margin-left:auto;font-size:12px;color:var(--tx2);background:var(--card2);
+    border:1px solid var(--line);padding:3px 9px;border-radius:20px;font-weight:600}
+  .doclist{list-style:none;margin:0;padding:8px}
+  .docrow{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:var(--radius-s);transition:.12s}
+  .docrow:hover{background:var(--card2)}
+  .docrow .di{width:30px;height:30px;border-radius:8px;flex:none;display:grid;place-items:center;
+    background:var(--card2);border:1px solid var(--line);color:var(--fach)}
+  .docrow .dn{flex:1;min-width:0;font-weight:600;font-size:14px;line-height:1.3;overflow-wrap:anywhere}
+  .docrow .dg{flex:none;font-size:11.5px;color:var(--tx3)}
+  .docrow .open{flex:none;font-size:12.5px;font-weight:650;color:var(--fach);background:transparent;font:inherit;
+    border:1px solid color-mix(in srgb,var(--fach) 40%,transparent);padding:6px 12px;border-radius:9px;transition:.12s;cursor:pointer}
+  .docrow .open:hover{background:var(--fach);color:#fff}
+  .docrow .open:disabled{opacity:.6;cursor:wait}
+  .docrow .dl{flex:none;width:31px;height:31px;display:grid;place-items:center;border-radius:9px;cursor:pointer;
+    background:transparent;border:1px solid var(--line);color:var(--tx3);transition:.12s}
+  .docrow .dl:hover{color:var(--fach);border-color:var(--fach)}
+  .cat-empty{padding:18px 15px;text-align:center;color:var(--tx3);font-size:13.5px;line-height:1.6}
+
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:80;
+    background:var(--card);border:1px solid var(--warn);color:var(--tx);font-size:13.5px;font-weight:600;
+    padding:12px 18px;border-radius:12px;box-shadow:var(--shadow);display:none}
+  .toast.zeig{display:block}
+
+  footer{margin-top:36px;padding-top:18px;border-top:1px solid var(--line);color:var(--tx3);font-size:12.5px;line-height:1.7}
+  footer b{color:var(--tx2)}
+
+  @media (max-width:720px){ .cats-wrap{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-row">
+    <div class="brand">
+      <div class="logo" id="logo">🔐</div>
+      <div>
+        <h1>Schuljahr-Portal</h1>
+        <div class="sub">Schuljahr <span id="h-jahr">–</span></div>
+      </div>
+    </div>
+    <span class="rolle-chip nur-angemeldet" id="rolleChip"><span class="dot"></span><span id="rolleText"></span></span>
+    <span class="spacer"></span>
+    <select class="klass-select nur-angemeldet" id="klassenSelect" title="Klasse wählen" aria-label="Klasse wählen"></select>
+    <div class="seg nur-angemeldet" id="seg">
+      <button data-sem="1" class="on">Semester 1</button>
+      <button data-sem="2">Semester 2</button>
+      <button data-sem="alle">Alle</button>
+    </div>
+    <button class="btn ghost icon" id="themeBtn" title="Hell/Dunkel umschalten" aria-label="Hell/Dunkel umschalten"></button>
+    <button class="btn ghost nur-angemeldet" id="logoutBtn" title="Abmelden">Abmelden</button>
+  </div>
+</header>
+
+<main id="view"></main>
+<div class="toast" id="toast" role="alert"></div>
+
+<footer>
+  🔐 <b>Ende-zu-Ende verschlüsselt:</b> Alle Dokumente liegen ausschließlich als
+  AES-256-GCM-Chiffrat auf dem Server. Die Entschlüsselung passiert erst in diesem
+  Browser — ohne gültiges Passwort sind die Daten wertlos.
+</footer>
+
+<script>
+"use strict";
+/* ═══════════════════════════ Grund-Helfer ══════════════════════════════ */
+const $  = (s,el=document)=>el.querySelector(s);
+const $$ = (s,el=document)=>[...el.querySelectorAll(s)];
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const b64zu = s => Uint8Array.from(atob(s), c=>c.charCodeAt(0));
+
+const KATEGORIEN = [
+  { key:"skripte",    name:"Skripte",   icon:"📘" },
+  { key:"pruefungen", name:"Prüfungen", icon:"📝" },
+  { key:"aufgaben",   name:"Aufgaben",  icon:"✏️" },
+  { key:"noten",      name:"Noten",     icon:"📊" },
+  { key:"sonstiges",  name:"Sonstiges", icon:"🗂️" },
+];
+const REFERENTIEL_SLOTS = [
+  { key:"formation",  name:"Référentiel de formation" },
+  { key:"evaluation", name:"Référentiel d'évaluation" },
+];
+const AKZENTE = { eltec:"var(--eltec)", mint:"var(--mint)", prodi:"var(--prodi)" };
+const MIME = { pdf:"application/pdf", html:"text/html", htm:"text/html", txt:"text/plain",
+  png:"image/png", jpg:"image/jpeg", jpeg:"image/jpeg", gif:"image/gif", svg:"image/svg+xml",
+  mp4:"video/mp4", webm:"video/webm", mp3:"audio/mpeg" };
+const mime = typ => MIME[typ] || "application/octet-stream";
+const akzent = a => AKZENTE[a] || (a && (a.startsWith("#")||a.startsWith("var(")) ? a : "var(--accent)");
+const FILE_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v5h5"/><path d="M7 3h8l5 5v11a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/></svg>';
+const DL_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>';
+
+function groesseText(b){
+  if(!b && b!==0) return "";
+  if(b < 1024*1024) return (b/1024).toFixed(0)+" KB";
+  return (b/1024/1024).toFixed(1)+" MB";
+}
+let toastTimer=null;
+function toast(msg){
+  const t=$("#toast"); t.textContent=msg; t.classList.add("zeig");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("zeig"), 4200);
+}
+
+/* ═══════════════════════════ Krypto (WebCrypto) ═════════════════════════
+   Muss zu build.py passen: PBKDF2-SHA256 → AES-256-GCM,
+   Dateien/Manifeste = 12-B-Nonce || Chiffrat. */
+async function leiteKekAb(passwort, saltB64, iterationen){
+  const material = await crypto.subtle.importKey(
+    "raw", new TextEncoder().encode(passwort.normalize("NFC")), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey(
+    { name:"PBKDF2", salt:b64zu(saltB64), iterations:iterationen, hash:"SHA-256" },
+    material, { name:"AES-GCM", length:256 }, false, ["decrypt"]);
+}
+async function entschluesseleJSON(key, ivB64, ctB64){
+  const klar = await crypto.subtle.decrypt({name:"AES-GCM", iv:b64zu(ivB64)}, key, b64zu(ctB64));
+  return JSON.parse(new TextDecoder().decode(klar));
+}
+async function importiereVaultKey(kB64){
+  return crypto.subtle.importKey("raw", b64zu(kB64), {name:"AES-GCM"}, false, ["decrypt"]);
+}
+async function entschluesseleBlock(key, puffer){
+  const bytes = new Uint8Array(puffer);
+  if(bytes.length < 13) throw new Error("Datei beschädigt");
+  return crypto.subtle.decrypt({name:"AES-GCM", iv:bytes.slice(0,12)}, key, bytes.slice(12));
+}
+
+/* ═══════════════════════════ Zustand ════════════════════════════════════ */
+const SESSION_KEY = "portal_session_v1";
+const SEM_KEY = "dash_sem", KLASSE_KEY = "dash_klasse", THEME_KEY = "dash_theme";
+let INDEX = null;         // vaults/index.json (öffentlich, ohne Geheimnisse)
+let SESSION = null;       // { rolle, label, vaults:[{id,k,manifest}] }
+let DATEN = null;         // { klassen:{ key:{ name, faecher, module, bereiche:Set } } }
+const state = { klasse:null, sem:loadSem(), view:"home", modul:null };
+const vaultKeyCache = new Map();   // vaultId → CryptoKey
+const blobCache = new Map();       // dateiId → BlobURL
+
+function loadSem(){ try{ const v=localStorage.getItem(SEM_KEY); if(v==="1"||v==="2") return Number(v); if(v==="alle") return "alle"; }catch(e){} return 1; }
+
+async function ladeIndex(){
+  if(INDEX) return INDEX;
+  const r = await fetch("vaults/index.json", {cache:"no-store"});
+  if(!r.ok) throw new Error("index");
+  INDEX = await r.json();
+  $("#h-jahr").textContent = INDEX.schuljahr || "–";
+  return INDEX;
+}
+
+/* ═══════════════════════════ Anmeldung ══════════════════════════════════ */
+async function pruefePasswort(passwort){
+  const idx = await ladeIndex();
+  for(const pr of idx.principals){
+    const kek = await leiteKekAb(passwort, pr.salt, idx.kdf.iter);
+    const offen = [];
+    for(const v of idx.vaults){
+      for(const w of v.wraps){
+        if(w.p !== pr.id) continue;
+        try{
+          const nutzlast = await entschluesseleJSON(kek, w.iv, w.ct);
+          offen.push({ id:v.id, manifest:v.manifest, k:nutzlast.k,
+                       rolle:nutzlast.rolle, klasse:nutzlast.klasse, label:nutzlast.label });
+        }catch(e){ /* dieser Zugang passt nicht zu diesem Vault */ }
+      }
+    }
+    if(offen.length){
+      const rolle = offen.some(o=>o.rolle==="admin") ? "admin"
+                  : offen.some(o=>o.rolle==="prof")  ? "prof" : "schueler";
+      return { rolle, label: offen[0].label,
+               vaults: offen.map(o=>({id:o.id, k:o.k, manifest:o.manifest})) };
+    }
+  }
+  return null;
+}
+
+async function ladeDaten(session){
+  const klassen = {};
+  for(const v of session.vaults){
+    let key = vaultKeyCache.get(v.id);
+    if(!key){ key = await importiereVaultKey(v.k); vaultKeyCache.set(v.id, key); }
+    const r = await fetch(v.manifest, {cache:"no-store"});
+    if(!r.ok) throw new Error("manifest");
+    const m = JSON.parse(new TextDecoder().decode(await entschluesseleBlock(key, await r.arrayBuffer())));
+
+    const kl = klassen[m.klasse] ??= { key:m.klasse, name:m.name, faecher:[], module:{}, bereiche:new Set() };
+    if(m.faecher && m.faecher.length) kl.faecher = m.faecher;
+    if(m.bereich==="skripte"){ kl.bereiche.add("skripte"); }
+    else { ["pruefungen","aufgaben","noten","sonstiges","referentiels"].forEach(b=>kl.bereiche.add(b)); }
+
+    for(const [mk, bereiche] of Object.entries(m.module||{})){
+      const ziel = kl.module[mk] ??= {};
+      for(const [bk, wert] of Object.entries(bereiche)){
+        if(bk==="referentiels"){
+          const refs = ziel.referentiels ??= {formation:null, evaluation:null, weitere:[]};
+          for(const slot of ["formation","evaluation"]){
+            if(wert[slot]){ wert[slot].vault=v.id; refs[slot]=wert[slot]; }
+          }
+          (wert.weitere||[]).forEach(e=>{ e.vault=v.id; refs.weitere.push(e); });
+        }else{
+          (wert||[]).forEach(e=>e.vault=v.id);
+          ziel[bk] = wert||[];
+        }
+      }
+    }
+  }
+  return { klassen };
+}
+
+function sessionSpeichern(s){ try{ sessionStorage.setItem(SESSION_KEY, JSON.stringify(s)); }catch(e){} }
+function sessionLesen(){ try{ return JSON.parse(sessionStorage.getItem(SESSION_KEY)||"null"); }catch(e){ return null; } }
+function abmelden(){
+  try{ sessionStorage.removeItem(SESSION_KEY); }catch(e){}
+  blobCache.forEach(url=>URL.revokeObjectURL(url));
+  location.reload();
+}
+
+/* ═══════════════════════════ Login-Ansicht ══════════════════════════════ */
+function renderLogin(){
+  document.body.classList.remove("angemeldet");
+  $("#view").innerHTML = `
+  <div class="login-wrap"><div class="login-card">
+    <div class="logo">🔐</div>
+    <h2>Schuljahr-Portal</h2>
+    <div class="sub">Zugang für Klassen &amp; Lehrpersonen</div>
+    <form id="loginForm" autocomplete="on">
+      <input type="password" id="pw" placeholder="Passwort" autocomplete="current-password"
+             autofocus required aria-label="Passwort">
+      <button type="submit" id="loginBtn">Anmelden</button>
+    </form>
+    <div class="login-status" id="loginStatus"></div>
+    <div class="login-info">Jede Klasse und jede Lehrperson hat ein eigenes Passwort.<br>
+      Die Inhalte werden erst nach der Anmeldung in deinem Browser entschlüsselt.</div>
+  </div></div>`;
+  $("#loginForm").addEventListener("submit", async ev=>{
+    ev.preventDefault();
+    const pw = $("#pw").value;
+    if(!pw) return;
+    const btn = $("#loginBtn"), status = $("#loginStatus");
+    btn.disabled = true; status.classList.remove("fehler");
+    status.textContent = "Prüfe Zugang — Schlüssel wird abgeleitet …";
+    try{
+      const session = await pruefePasswort(pw);
+      $("#pw").value = "";
+      if(!session){
+        status.classList.add("fehler");
+        status.textContent = "Kein Zugang mit diesem Passwort gefunden.";
+        btn.disabled = false; $("#pw").focus();
+        return;
+      }
+      status.textContent = "Entschlüssele Inhalte …";
+      SESSION = session;
+      DATEN = await ladeDaten(session);
+      sessionSpeichern(session);
+      starteOberflaeche();
+    }catch(e){
+      status.classList.add("fehler");
+      status.textContent = "Fehler beim Laden — bitte Verbindung prüfen und neu versuchen.";
+      btn.disabled = false;
+    }
+  });
+}
+
+/* ═══════════════════════════ Portal-Ansicht ═════════════════════════════ */
+function AK(){ return DATEN.klassen[state.klasse]; }
+function faecher(){ return AK()?.faecher || []; }
+const modulKey = (f,sem)=> (f.modul[sem]||f.key).replace(/\s+/g,"");
+function docsOf(mk,katKey){ const m=AK().module[mk]; return (m && m[katKey]) || []; }
+function refsOf(mk){ const m=AK().module[mk]; return (m && m.referentiels) || {formation:null,evaluation:null,weitere:[]}; }
+function sichtbareKategorien(){ return KATEGORIEN.filter(k=>AK().bereiche.has(k.key)); }
+
+function rolleText(){
+  if(SESSION.rolle==="admin") return `Admin · ${SESSION.label}`;
+  if(SESSION.rolle==="prof")  return `Prof · ${SESSION.label}`;
+  return `Klasse ${SESSION.label.replace(/^Klasse\s+/i,"")} · Schüler`;
+}
+
+function starteOberflaeche(){
+  document.body.classList.add("angemeldet");
+  $("#rolleText").textContent = rolleText();
+  const keys = Object.keys(DATEN.klassen).sort();
+  let merk=null; try{ merk=localStorage.getItem(KLASSE_KEY); }catch(e){}
+  state.klasse = (merk && DATEN.klassen[merk]) ? merk : keys[0];
+  const sel = $("#klassenSelect");
+  sel.innerHTML = keys.map(k=>`<option value="${esc(k)}">${esc(DATEN.klassen[k].name)}</option>`).join("");
+  sel.value = state.klasse;
+  sel.style.display = keys.length>1 ? "" : "none";
+  $("#logo").textContent = (AK()?.key || "PT").replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase();
+  document.title = "Portal · " + (INDEX.schuljahr||"");
+  state.view="home"; state.modul=null;
+  render();
+}
+
+function moduleList(){
+  const sems = state.sem==="alle" ? [1,2] : [state.sem];
+  const out=[];
+  sems.forEach(sem=> faecher().forEach(f=>{ if(f.modul[sem]) out.push({f,sem,mk:modulKey(f,sem)}); }));
+  return out;
+}
+
+function renderHome(){
+  const kats = sichtbareKategorien();
+  const zeigtRefs = AK().bereiche.has("referentiels");
+  const tiles = moduleList().map(({f,sem,mk})=>{
+    const refs = refsOf(mk);
+    const rf = REFERENTIEL_SLOTS.filter(s=>refs[s.key]).length;
+    const refChip = zeigtRefs ? `<span class="chip ${rf?'':'zero'}">📋 Réf. <b>${rf}/${REFERENTIEL_SLOTS.length}</b></span>` : "";
+    const chips = refChip + kats.map(k=>{
+      const n=docsOf(mk,k.key).length;
+      return `<span class="chip ${n?'':'zero'}">${k.icon} ${esc(k.name)} <b>${n}</b></span>`;
+    }).join("");
+    return `<button class="tile" data-modul="${esc(mk)}" style="--fach:${akzent(f.accent)}">
+      <div class="thead">
+        <div class="badge">${esc(f.name.slice(0,3))}</div>
+        <div><div class="mod">${esc(f.modul[sem])}</div><div class="fach">${esc(f.name)}</div></div>
+        ${state.sem==="alle"?`<span class="sem-tag">S${sem}</span>`:""}
+      </div>
+      <div class="cats">${chips}</div>
+      <div class="go">Öffnen →</div>
+    </button>`;
+  }).join("");
+  $("#view").innerHTML = tiles
+    ? `<div class="grid">${tiles}</div>`
+    : `<div class="empty-note">Für diese Klasse sind noch keine Fächer hinterlegt.</div>`;
+}
+
+function docRow(d, mitGroesse=true){
+  const g = mitGroesse && d.groesse ? `<span class="dg">${groesseText(d.groesse)}</span>` : "";
+  return `<li class="docrow"><span class="di">${FILE_SVG}</span>
+    <span class="dn">${esc(d.name||"Dokument")}</span>${g}
+    <button class="open" data-vault="${esc(d.vault)}" data-id="${esc(d.id)}"
+      data-typ="${esc(d.typ)}" data-name="${esc(d.name||"Dokument")}">Öffnen ↗</button>
+    <button class="dl" title="Herunterladen" data-vault="${esc(d.vault)}" data-id="${esc(d.id)}"
+      data-typ="${esc(d.typ)}" data-name="${esc(d.name||"Dokument")}" data-dl="1">${DL_SVG}</button></li>`;
+}
+
+function renderModulReferentiels(mk,f){
+  const refs = refsOf(mk);
+  const rows = REFERENTIEL_SLOTS.map(slot=>{
+    const r = refs[slot.key];
+    if(r) return docRow({...r, name:slot.name}, false);
+    return `<li class="docrow"><span class="di">${FILE_SVG}</span>
+      <span class="dn">${esc(slot.name)}</span><span class="dg">noch nicht abgelegt</span></li>`;
+  }).join("") + (refs.weitere||[]).map(r=>docRow(r,false)).join("");
+  const rf = REFERENTIEL_SLOTS.filter(s=>refs[s.key]).length;
+  return `<section class="cat modref" style="--fach:${akzent(f.accent)}">
+    <h3><span class="ic">📋</span> Référentiels <span class="hint-sub">Formation · Évaluation</span>
+    <span class="cnt">${rf}/${REFERENTIEL_SLOTS.length}</span></h3>
+    <ul class="doclist">${rows}</ul>
+  </section>`;
+}
+
+function renderDetail(){
+  const mk = state.modul;
+  let found=null;
+  [1,2].forEach(sem=>faecher().forEach(f=>{ if(modulKey(f,sem)===mk) found={f,sem,mk}; }));
+  if(!found){ state.view="home"; return renderHome(); }
+  const {f,sem}=found;
+  const kats = sichtbareKategorien().map(k=>{
+    const docs=docsOf(mk,k.key);
+    const body = docs.length
+      ? `<ul class="doclist">${docs.map(d=>docRow(d)).join("")}</ul>`
+      : `<div class="cat-empty">Noch nichts abgelegt.</div>`;
+    return `<section class="cat" style="--fach:${akzent(f.accent)}">
+      <h3><span class="ic">${k.icon}</span> ${esc(k.name)}<span class="cnt">${docs.length}</span></h3>
+      ${body}</section>`;
+  }).join("");
+  $("#view").innerHTML = `<div class="detail" style="--fach:${akzent(f.accent)}">
+    <button class="back">← Übersicht</button>
+    <div class="dhead">
+      <div class="badge">${esc(f.name.slice(0,3))}</div>
+      <div><div class="mod">${esc(f.modul[sem])}</div>
+        <div class="path">${esc(AK().name)} · ${esc(f.name)}</div></div>
+    </div>
+    ${AK().bereiche.has("referentiels") ? renderModulReferentiels(mk,f) : ""}
+    <div class="cats-wrap">${kats}</div>
+  </div>`;
+  window.scrollTo(0,0);
+}
+
+function render(){ if(!SESSION){ renderLogin(); return; } if(state.view==="home") renderHome(); else renderDetail(); }
+
+/* ═══════════════════════════ Datei öffnen/laden ═════════════════════════ */
+async function holeBlobURL(vaultId, dateiId, typ){
+  if(blobCache.has(dateiId)) return blobCache.get(dateiId);
+  const v = SESSION.vaults.find(x=>x.id===vaultId);
+  if(!v) throw new Error("kein Zugriff");
+  let key = vaultKeyCache.get(v.id);
+  if(!key){ key = await importiereVaultKey(v.k); vaultKeyCache.set(v.id, key); }
+  const r = await fetch(`vaults/${vaultId}/f/${dateiId}.enc`, {cache:"force-cache"});
+  if(!r.ok) throw new Error("laden");
+  const klar = await entschluesseleBlock(key, await r.arrayBuffer());
+  const url = URL.createObjectURL(new Blob([klar], {type:mime(typ)}));
+  blobCache.set(dateiId, url);
+  return url;
+}
+function ladeHerunter(url, name, typ){
+  const a = document.createElement("a");
+  a.href = url; a.download = /\.[a-z0-9]{1,5}$/i.test(name) ? name : `${name}.${typ||"pdf"}`;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function oeffneDatei(btn){
+  const {vault, id, typ, name, dl} = btn.dataset;
+  btn.disabled = true;
+  let fenster = null;
+  if(!dl){
+    fenster = window.open("", "_blank");
+    if(fenster){
+      fenster.document.title = name;
+      const p = fenster.document.createElement("p");
+      p.style.cssText = "font-family:sans-serif;padding:2em;color:#555";
+      p.textContent = "🔐 Entschlüssele „" + name + "“ …";
+      fenster.document.body.appendChild(p);
+    }
+  }
+  holeBlobURL(vault, id, typ).then(url=>{
+    if(dl){ ladeHerunter(url, name, typ); }
+    else if(fenster){ fenster.location.replace(url); }
+    else { ladeHerunter(url, name, typ); toast("Pop-up blockiert — Datei wurde stattdessen heruntergeladen."); }
+  }).catch(()=>{
+    if(fenster) fenster.close();
+    toast("Datei konnte nicht entschlüsselt werden. Neu anmelden und erneut versuchen.");
+  }).finally(()=>{ btn.disabled = false; });
+}
+
+/* ═══════════════════════════ Navigation & Kopf ══════════════════════════ */
+$("#view").addEventListener("click", e=>{
+  const open = e.target.closest(".open,.dl");
+  if(open){ oeffneDatei(open); return; }
+  const tile = e.target.closest(".tile");
+  if(tile){ state.view="detail"; state.modul=tile.dataset.modul; render(); return; }
+  if(e.target.closest(".back")){ state.view="home"; state.modul=null; render(); }
+});
+$("#klassenSelect").addEventListener("change", e=>{
+  state.klasse = e.target.value;
+  try{ localStorage.setItem(KLASSE_KEY, state.klasse); }catch(err){}
+  $("#logo").textContent = state.klasse.replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase();
+  state.view="home"; state.modul=null; render();
+});
+function markSeg(){ $$("#seg button").forEach(x=>x.classList.toggle("on", x.dataset.sem===String(state.sem))); }
+$$("#seg button").forEach(b=>b.addEventListener("click",()=>{
+  const v=b.dataset.sem; state.sem = v==="alle"?"alle":Number(v);
+  try{ localStorage.setItem(SEM_KEY, String(state.sem)); }catch(e){}
+  state.view="home"; state.modul=null; markSeg(); render();
+}));
+markSeg();
+$("#logoutBtn").addEventListener("click", abmelden);
+
+/* ---------- Hell/Dunkel ---------- */
+const SUN  = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.3"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const MOON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+function applyTheme(t){
+  document.documentElement.setAttribute("data-theme",t);
+  const meta=document.querySelector('meta[name="theme-color"]'); if(meta) meta.setAttribute("content", t==="light"?"#eef1f7":"#0f1420");
+  const b=$("#themeBtn"); if(b) b.innerHTML = (t==="light" ? MOON+" Dunkel" : SUN+" Hell");
+}
+function currentTheme(){
+  const a=document.documentElement.getAttribute("data-theme");
+  if(a==="light"||a==="dark") return a;
+  try{ const v=localStorage.getItem(THEME_KEY); if(v==="light"||v==="dark") return v; }catch(e){}
+  return (window.matchMedia && matchMedia("(prefers-color-scheme: light)").matches) ? "light":"dark";
+}
+applyTheme(currentTheme());
+$("#themeBtn").addEventListener("click",()=>{
+  const next=(document.documentElement.getAttribute("data-theme")==="light")?"dark":"light";
+  try{ localStorage.setItem(THEME_KEY,next); }catch(e){}
+  applyTheme(next);
+});
+
+/* ═══════════════════════════ Start ══════════════════════════════════════ */
+(async function start(){
+  try{ await ladeIndex(); }catch(e){ $("#view").innerHTML =
+    `<div class="empty-note">Portal-Daten nicht gefunden — wurde <code>build.py</code> ausgeführt?</div>`; return; }
+  const alt = sessionLesen();
+  if(alt){
+    try{ SESSION = alt; DATEN = await ladeDaten(alt); starteOberflaeche(); return; }
+    catch(e){ SESSION=null; DATEN=null; try{ sessionStorage.removeItem(SESSION_KEY); }catch(_){}}
+  }
+  renderLogin();
+})();
+</script>
+</body>
+</html>
