@@ -28,14 +28,29 @@ auch nicht durch Manipulation der Webseite.
 
 ## Alltag: neue Datei veröffentlichen
 
-1. PDF wie gewohnt in den OneDrive-Ordner legen, z. B.
+**Der Ein-Klick-Weg (empfohlen):** PDFs wie gewohnt in die OneDrive-Ordner
+legen, dann Doppelklick auf **`Portal veröffentlichen.command`** im
+Dashboard-Ordner. Das Werkzeug (`veroeffentlichen.py`) macht alles selbst:
+
+- holt Browser-Uploads ab (`git pull`),
+- erkennt **neue Klassen-Ordner** und bietet an, die Klasse anzulegen
+  (Fächer werden aus den Modul-Ordnernamen abgeleitet, Passwort wird erzeugt),
+- warnt vor Stolperfallen (Dateien in Unterordnern, unbekannte Modul-Ordner),
+- zeigt, was sich seit dem letzten Lauf geändert hat,
+- baut verschlüsselt neu und pusht — **nur wenn es etwas zu tun gibt**,
+- erneuert bei Noten-Änderungen das Offline-Noten-Dashboard (bleibt lokal).
+
+**Der Hand-Weg** (macht dasselbe in Einzelschritten):
+
+1. PDF in den OneDrive-Ordner legen, z. B.
    `…/Dashboard/DP2ET/ELTEC3/Skripte/Mein_Skript.pdf`
 2. Im Portal-Ordner ausführen:
    ```bash
    python3 build.py
    git add docs && git commit -m "Neue Inhalte" && git push
    ```
-3. Nach 1–2 Minuten ist die Datei online — verschlüsselt.
+
+Nach 1–2 Minuten ist die Datei online — verschlüsselt.
 
 ### Upload direkt im Browser (Admin, z. B. unterwegs)
 

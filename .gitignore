@@ -1,5 +1,8 @@
 # GEHEIM — Passwörter niemals committen!
 zugangsdaten.json
 
+# lokales Gedächtnis des Ein-Klick-Veröffentlichers
+.letzter-stand.json
+
 # macOS
 .DS_Store
