@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1420">
+<meta name="robots" content="noindex">
+<title>Schuljahr-Portal</title>
+<script>
+/* Theme sofort setzen (verhindert Aufblitzen beim Laden) */
+(function(){try{var v=localStorage.getItem("dash_theme");
+  if(v!=="light"&&v!=="dark"){v=(window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches)?"light":"dark";}
+  document.documentElement.setAttribute("data-theme",v);}catch(e){}})();
+</script>
+<style>
+  :root{
+    --bg:#0f1420; --bg2:#151b2b; --card:#1b2233; --card2:#212a3e;
+    --line:#2a3550; --line2:#38455f;
+    --tx:#eef2fb; --tx2:#aab5cc; --tx3:#7684a0;
+    --accent:#6ea8fe;
+    --eltec:#3b82f6; --mint:#14b8a6; --prodi:#f59e0b;
+    --ok:#34d399; --warn:#f87171;
+    --radius:16px; --radius-s:11px;
+    --shadow:0 8px 30px rgba(0,0,0,.35);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg:#eef1f7; --bg2:#e6eaf3; --card:#ffffff; --card2:#f6f8fc;
+      --line:#dde3ee; --line2:#cfd7e6;
+      --tx:#141a26; --tx2:#4a566b; --tx3:#7a869c;
+      --ok:#059669; --warn:#dc2626;
+      --shadow:0 8px 26px rgba(30,45,80,.10);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#eef1f7; --bg2:#e6eaf3; --card:#ffffff; --card2:#f6f8fc;
+    --line:#dde3ee; --line2:#cfd7e6;
+    --tx:#141a26; --tx2:#4a566b; --tx3:#7a869c;
+    --ok:#059669; --warn:#dc2626;
+    --shadow:0 8px 26px rgba(30,45,80,.10);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:
+     radial-gradient(1200px 600px at 80% -10%, color-mix(in srgb,var(--accent) 12%, transparent), transparent 60%),
+     var(--bg);color:var(--tx);min-height:100%;-webkit-text-size-adjust:100%}
+  body{padding:0 clamp(14px,3vw,40px) 60px}
+  a{color:inherit;text-decoration:none}
+
+  /* ---------- Header ---------- */
+  header.top{position:sticky;top:0;z-index:30;margin:0 clamp(-14px,-3vw,-40px);
+    padding:14px clamp(14px,3vw,40px);backdrop-filter:saturate(160%) blur(14px);
+    background:color-mix(in srgb,var(--bg) 78%, transparent);border-bottom:1px solid var(--line)}
+  .top-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:13px}
+  .logo{width:44px;height:44px;border-radius:12px;flex:none;display:grid;place-items:center;
+    background:linear-gradient(140deg,var(--eltec),var(--prodi));color:#fff;font-weight:800;font-size:18px;
+    box-shadow:var(--shadow)}
+  .brand h1{font-size:16px;margin:0;letter-spacing:.2px}
+  .brand .sub{font-size:12.5px;color:var(--tx2);margin-top:1px}
+
+  .rolle-chip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;
+    background:var(--card);border:1px solid var(--line2);color:var(--tx2);
+    padding:8px 13px;border-radius:11px}
+  .rolle-chip .dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+
+  .klass-select{appearance:none;-webkit-appearance:none;
+    background:var(--card);border:1px solid var(--line2);color:var(--tx);font-weight:800;font-size:15px;
+    padding:10px 36px 10px 15px;border-radius:12px;cursor:pointer;box-shadow:var(--shadow);
+    background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="%237684a0" stroke-width="2.6" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>');
+    background-repeat:no-repeat;background-position:right 12px center}
+  .klass-select:hover,.klass-select:focus{outline:none;border-color:var(--accent)}
+
+  .seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px;gap:2px}
+  .seg button{border:0;background:transparent;color:var(--tx2);font-weight:600;font-size:13.5px;
+    padding:8px 15px;border-radius:9px;cursor:pointer;white-space:nowrap;transition:.15s}
+  .seg button:hover{color:var(--tx)}
+  .seg button.on{background:var(--accent);color:#0a0f1a}
+  @media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .seg button.on{color:#fff}}
+  :root[data-theme="light"] .seg button.on{color:#fff}
+
+  .btn{border:0;cursor:pointer;font-weight:650;font-size:13.5px;padding:10px 15px;border-radius:12px;
+    display:inline-flex;align-items:center;gap:7px;transition:.15s}
+  .btn.ghost{background:var(--card);border:1px solid var(--line);color:var(--tx2)}
+  .btn.ghost:hover{color:var(--tx)}
+  .btn.icon{padding:10px 13px}
+  .spacer{margin-left:auto}
+  .nur-angemeldet{display:none}
+  body.angemeldet .nur-angemeldet{display:inline-flex}
+  body.angemeldet .nur-angemeldet.seg{display:flex}
+
+  /* ---------- Login ---------- */
+  .login-wrap{min-height:calc(100vh - 220px);display:grid;place-items:center;padding:30px 0}
+  .login-card{width:min(420px,94vw);background:var(--card);border:1px solid var(--line);
+    border-radius:20px;box-shadow:var(--shadow);padding:34px 32px;text-align:center}
+  .login-card .logo{width:58px;height:58px;font-size:22px;margin:0 auto 16px}
+  .login-card h2{margin:0 0 4px;font-size:21px}
+  .login-card .sub{color:var(--tx2);font-size:13.5px;margin-bottom:24px}
+  .login-card input[type=password]{width:100%;padding:13px 15px;border-radius:12px;font-size:16px;
+    border:1px solid var(--line2);background:var(--card2);color:var(--tx);outline:none;text-align:center;
+    letter-spacing:.5px}
+  .login-card input[type=password]:focus{border-color:var(--accent)}
+  .login-card button[type=submit]{width:100%;margin-top:14px;padding:13px;border:0;border-radius:12px;
+    background:var(--accent);color:#0a0f1a;font-weight:800;font-size:15px;cursor:pointer;transition:.15s}
+  :root[data-theme="light"] .login-card button[type=submit]{color:#fff}
+  @media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .login-card button[type=submit]{color:#fff}}
+  .login-card button[type=submit]:disabled{opacity:.55;cursor:wait}
+  .login-status{margin-top:14px;font-size:13px;min-height:20px;color:var(--tx2)}
+  .login-status.fehler{color:var(--warn);font-weight:600}
+  .login-info{margin-top:22px;padding-top:16px;border-top:1px solid var(--line);
+    color:var(--tx3);font-size:12px;line-height:1.7}
+
+  /* ---------- Übersicht: Fach-Kacheln ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:15px;margin-top:16px}
+  .tile{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--fach,var(--accent));
+    border-radius:var(--radius);padding:17px 18px;cursor:pointer;transition:.15s;box-shadow:var(--shadow);
+    display:flex;flex-direction:column;gap:14px;text-align:left;color:var(--tx);font:inherit}
+  .tile:hover{transform:translateY(-3px);border-color:var(--fach,var(--accent))}
+  .tile .thead{display:flex;align-items:center;gap:12px}
+  .tile .badge{width:44px;height:44px;border-radius:12px;flex:none;display:grid;place-items:center;
+    font-weight:800;font-size:13px;color:#fff;background:var(--fach)}
+  .tile .mod{font-weight:750;font-size:17px;line-height:1.1}
+  .tile .fach{font-size:12.5px;color:var(--tx2);margin-top:2px}
+  .tile .sem-tag{font-size:10.5px;font-weight:700;letter-spacing:.5px;color:var(--fach);
+    border:1px solid color-mix(in srgb,var(--fach) 45%,transparent);padding:2px 7px;border-radius:6px;margin-left:auto}
+  .tile .cats{display:flex;flex-wrap:wrap;gap:7px}
+  .tile .chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--tx2);
+    background:var(--card2);border:1px solid var(--line);padding:5px 10px;border-radius:9px}
+  .tile .chip b{color:var(--tx);font-weight:750}
+  .tile .chip.zero{opacity:.5}
+  .tile .go{font-size:12.5px;color:var(--fach);font-weight:650;display:flex;align-items:center;gap:5px}
+  .empty-note{margin-top:18px;color:var(--tx3);font-size:14px;background:var(--card);border:1px dashed var(--line2);
+    border-radius:var(--radius);padding:20px;text-align:center;line-height:1.6}
+
+  /* ---------- Unter-Dashboard (Detail) ---------- */
+  .detail{margin-top:22px}
+  .back{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--tx2);
+    background:var(--card);border:1px solid var(--line);padding:9px 14px;border-radius:11px;cursor:pointer;transition:.15s}
+  .back:hover{color:var(--tx)}
+  .dhead{display:flex;align-items:center;gap:15px;margin:20px 2px 6px}
+  .dhead .badge{width:52px;height:52px;border-radius:14px;flex:none;display:grid;place-items:center;
+    font-weight:800;font-size:15px;color:#fff;background:var(--fach);box-shadow:var(--shadow)}
+  .dhead .mod{font-size:24px;font-weight:800;line-height:1}
+  .dhead .path{font-size:12.5px;color:var(--tx2);margin-top:4px}
+
+  .cats-wrap{display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-top:18px;align-items:start}
+  .cat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+  .cat.modref{margin-top:18px}
+  .cat > h3{margin:0;padding:14px 16px;font-size:15px;font-weight:750;display:flex;align-items:center;gap:9px;
+    border-bottom:1px solid var(--line);background:linear-gradient(180deg,color-mix(in srgb,var(--fach) 14%,transparent),transparent)}
+  .cat > h3 .ic{font-size:17px}
+  .cat > h3 .hint-sub{margin-left:8px;font-size:11.5px;color:var(--tx2);font-weight:600}
+  .cat > h3 .cnt{margin-left:auto;font-size:12px;color:var(--tx2);background:var(--card2);
+    border:1px solid var(--line);padding:3px 9px;border-radius:20px;font-weight:600}
+  .doclist{list-style:none;margin:0;padding:8px}
+  .docrow{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:var(--radius-s);transition:.12s}
+  .docrow:hover{background:var(--card2)}
+  .docrow .di{width:30px;height:30px;border-radius:8px;flex:none;display:grid;place-items:center;
+    background:var(--card2);border:1px solid var(--line);color:var(--fach)}
+  .docrow .dn{flex:1;min-width:0;font-weight:600;font-size:14px;line-height:1.3;overflow-wrap:anywhere}
+  .docrow .dg{flex:none;font-size:11.5px;color:var(--tx3)}
+  .docrow .open{flex:none;font-size:12.5px;font-weight:650;color:var(--fach);background:transparent;font:inherit;
+    border:1px solid color-mix(in srgb,var(--fach) 40%,transparent);padding:6px 12px;border-radius:9px;transition:.12s;cursor:pointer}
+  .docrow .open:hover{background:var(--fach);color:#fff}
+  .docrow .open:disabled{opacity:.6;cursor:wait}
+  .docrow .dl{flex:none;width:31px;height:31px;display:grid;place-items:center;border-radius:9px;cursor:pointer;
+    background:transparent;border:1px solid var(--line);color:var(--tx3);transition:.12s}
+  .docrow .dl:hover{color:var(--fach);border-color:var(--fach)}
+  .cat-empty{padding:18px 15px;text-align:center;color:var(--tx3);font-size:13.5px;line-height:1.6}
+
+  .admin-token,.admin-block{padding:13px 16px;border-top:1px solid var(--line);color:var(--tx2);font-size:13px}
+  .admin-token input{display:block;width:100%;margin-top:8px;background:var(--card2);
+    border:1px solid var(--line2);color:var(--tx);font:inherit;font-size:13px;padding:8px 10px;border-radius:9px}
+  .admin-token input:focus{outline:none;border-color:var(--accent)}
+  .admin-token .tok-hilfe{display:block;margin-top:6px;font-size:11.5px;color:var(--tx3);line-height:1.6}
+  .admin-token .tok-hilfe a{color:var(--accent);font-weight:600}
+  .admin-block .up-sub{margin-left:8px;font-size:11.5px;color:var(--tx3);font-weight:600}
+  .np-ausgabe:empty{display:none}
+  .np-erfolg{margin-top:9px;padding:11px 13px;border:1px solid color-mix(in srgb,var(--ok) 50%,transparent);
+    border-radius:10px;background:color-mix(in srgb,var(--ok) 8%,transparent);font-size:12.5px;line-height:1.7}
+  .np-pw{margin-top:6px;font-size:14px}
+  .np-pw code{background:var(--card);border:1px solid var(--line);padding:3px 9px;border-radius:7px;
+    color:var(--tx);font-weight:700;letter-spacing:.5px}
+  .np-snippet{margin-top:9px;color:var(--tx3)}
+  .np-snippet pre{margin:5px 0 0;background:var(--bg);border:1px solid var(--line);border-radius:8px;
+    padding:9px 11px;color:var(--tx2);font-size:12px;overflow-x:auto;white-space:pre-wrap;word-break:break-word}
+  .admin-upload{padding:13px 16px;border-top:1px solid var(--line);color:var(--tx2);font-size:13px}
+  .admin-upload .up-sub{margin-left:8px;font-size:11.5px;color:var(--tx3);font-weight:600}
+  .up-zeile{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}
+  .up-zeile select,.up-zeile input{background:var(--card2);border:1px solid var(--line2);
+    color:var(--tx);font:inherit;font-size:13px;padding:8px 10px;border-radius:9px}
+  .up-zeile select:focus,.up-zeile input:focus{outline:none;border-color:var(--accent)}
+  .up-zeile input[type=file]{flex:1;min-width:180px}
+  .up-zeile input[type=password]{flex:1;min-width:180px}
+  .up-btn{background:var(--accent);color:#0a0f1a;font-weight:750}
+  :root[data-theme="light"] .up-btn{color:#fff}
+  @media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .up-btn{color:#fff}}
+  .up-btn:disabled{opacity:.55;cursor:wait}
+  .up-status{margin-top:8px;min-height:18px;font-size:12.5px;font-weight:600;color:var(--tx2)}
+  .up-merken{margin-top:9px;padding:9px 11px;border:1px solid color-mix(in srgb,var(--warn) 45%,transparent);
+    border-radius:9px;background:color-mix(in srgb,var(--warn) 7%,transparent);
+    font-size:12px;line-height:1.8;color:var(--tx3)}
+  .up-merken code,.admin-upload code{background:var(--card2);border:1px solid var(--line);
+    padding:1px 6px;border-radius:6px;color:var(--tx2);font-size:11px}
+  .up-merken a{color:var(--accent);font-weight:600}
+
+  details.admin-falt summary{cursor:pointer;list-style:none;font-size:13px;color:var(--tx2)}
+  details.admin-falt summary::-webkit-details-marker{display:none}
+  details.admin-falt summary::before{content:"▸ ";color:var(--tx3)}
+  details.admin-falt[open] summary::before{content:"▾ "}
+  details.admin-falt .up-zeile{margin-top:9px}
+  .docrow .dl.loeschen{font-size:13px}
+  .docrow .dl.loeschen:hover{color:#fff;background:var(--warn);border-color:var(--warn)}
+  .admin-hilfe{padding:13px 16px;border-top:1px solid var(--line);color:var(--tx3);
+    font-size:12.5px;line-height:2}
+  .admin-hilfe code{background:var(--card2);border:1px solid var(--line);padding:2px 7px;
+    border-radius:6px;color:var(--tx2);font-size:11.5px}
+  .admin-hilfe b{color:var(--tx2)}
+
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:80;
+    background:var(--card);border:1px solid var(--warn);color:var(--tx);font-size:13.5px;font-weight:600;
+    padding:12px 18px;border-radius:12px;box-shadow:var(--shadow);display:none}
+  .toast.zeig{display:block}
+
+  footer{margin-top:36px;padding-top:18px;border-top:1px solid var(--line);color:var(--tx3);font-size:12.5px;line-height:1.7}
+  footer b{color:var(--tx2)}
+
+  @media (max-width:720px){ .cats-wrap{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-row">
+    <div class="brand">
+      <div class="logo" id="logo">🔐</div>
+      <div>
+        <h1>Schuljahr-Portal</h1>
+        <div class="sub">Schuljahr <span id="h-jahr">–</span></div>
+      </div>
+    </div>
+    <span class="rolle-chip nur-angemeldet" id="rolleChip"><span class="dot"></span><span id="rolleText"></span></span>
+    <span class="spacer"></span>
+    <select class="klass-select nur-angemeldet" id="klassenSelect" title="Klasse wählen" aria-label="Klasse wählen"></select>
+    <div class="seg nur-angemeldet" id="seg">
+      <button data-sem="1" class="on">Semester 1</button>
+      <button data-sem="2">Semester 2</button>
+      <button data-sem="alle">Alle</button>
+    </div>
+    <button class="btn ghost icon" id="themeBtn" title="Hell/Dunkel umschalten" aria-label="Hell/Dunkel umschalten"></button>
+    <button class="btn ghost nur-angemeldet" id="logoutBtn" title="Abmelden">Abmelden</button>
+  </div>
+</header>
+
+<main id="view"></main>
+<div class="toast" id="toast" role="alert"></div>
+
+<footer>
+  🔐 <b>Ende-zu-Ende verschlüsselt:</b> Alle Dokumente liegen ausschließlich als
+  AES-256-GCM-Chiffrat auf dem Server. Die Entschlüsselung passiert erst in diesem
+  Browser — ohne gültiges Passwort sind die Daten wertlos.
+</footer>
+
+<script>
+"use strict";
+/* ═══════════════════════════ Grund-Helfer ══════════════════════════════ */
+const $  = (s,el=document)=>el.querySelector(s);
+const $$ = (s,el=document)=>[...el.querySelectorAll(s)];
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const b64zu = s => Uint8Array.from(atob(s), c=>c.charCodeAt(0));
+
+/* OHNE "Noten" — Notenlisten sind personenbezogen und bleiben offline. */
+const KATEGORIEN = [
+  { key:"skripte",    name:"Skripte",   icon:"📘" },
+  { key:"pruefungen", name:"Prüfungen", icon:"📝" },
+  { key:"aufgaben",   name:"Aufgaben",  icon:"✏️" },
+  { key:"sonstiges",  name:"Sonstiges", icon:"🗂️" },
+];
+const REFERENTIEL_SLOTS = [
+  { key:"formation",  name:"Référentiel de formation" },
+  { key:"evaluation", name:"Référentiel d'évaluation" },
+];
+/* ESG-Klassen (1GIGF/2GIGF) sind keine formation professionnelle: dort gibt es
+   nur EIN Référentiel (das Programme) statt des DAP-Paars Formation+Évaluation.
+   Gesteuert über ref_einzel im Klassen-Manifest (aus zugangsdaten.json). */
+const REF_SLOT_EINZEL = [ { key:"formation", name:"Programme" } ];
+function refSlots(kl){ return ((kl || (typeof AK==="function" ? AK() : null))||{}).ref_einzel
+                              ? REF_SLOT_EINZEL : REFERENTIEL_SLOTS; }
+function refUntertitel(kl){ return ((kl || (typeof AK==="function" ? AK() : null))||{}).ref_einzel
+                              ? "Programme" : "Formation · Évaluation"; }
+const AKZENTE = { eltec:"var(--eltec)", mint:"var(--mint)", prodi:"var(--prodi)" };
+/* html/htm/svg fehlen BEWUSST: sie würden same-origin ausgeführt und könnten
+   Sitzungs-Schlüssel/Token auslesen — solche Dateien gibt es nur als Download. */
+const MIME = { pdf:"application/pdf", txt:"text/plain",
+  png:"image/png", jpg:"image/jpeg", jpeg:"image/jpeg", gif:"image/gif",
+  mp4:"video/mp4", webm:"video/webm", mp3:"audio/mpeg" };
+const mime = typ => MIME[typ] || "application/octet-stream";
+const SICHER_ANZEIGEN = new Set(["pdf","png","jpg","jpeg","gif","txt","mp4","webm","mp3"]);
+const akzent = a => AKZENTE[a] || (a && (a.startsWith("#")||a.startsWith("var(")) ? a : "var(--accent)");
+const FILE_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v5h5"/><path d="M7 3h8l5 5v11a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/></svg>';
+const DL_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>';
+
+function groesseText(b){
+  if(!b && b!==0) return "";
+  if(b < 1024*1024) return (b/1024).toFixed(0)+" KB";
+  return (b/1024/1024).toFixed(1)+" MB";
+}
+let toastTimer=null;
+function toast(msg){
+  const t=$("#toast"); t.textContent=msg; t.classList.add("zeig");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("zeig"), 4200);
+}
+
+/* ═══════════════════════════ Krypto (WebCrypto) ═════════════════════════
+   Muss zu build.py passen: PBKDF2-SHA256 → AES-256-GCM,
+   Dateien/Manifeste = 12-B-Nonce || Chiffrat. */
+async function leiteKekRoh(passwort, saltB64, iterationen){
+  const material = await crypto.subtle.importKey(
+    "raw", new TextEncoder().encode(passwort.normalize("NFC")), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits(
+    { name:"PBKDF2", salt:b64zu(saltB64), iterations:iterationen, hash:"SHA-256" }, material, 256);
+  return new Uint8Array(bits);
+}
+async function importKek(rohBytes){
+  /* encrypt zusätzlich: der Admin wickelt Schlüssel für neue Zugänge ein */
+  return crypto.subtle.importKey("raw", rohBytes, {name:"AES-GCM"}, false, ["encrypt","decrypt"]);
+}
+async function leiteKekAb(passwort, saltB64, iterationen){
+  return importKek(await leiteKekRoh(passwort, saltB64, iterationen));
+}
+async function wickleEin(kekKey, objekt){
+  const nonce = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM", iv:nonce}, kekKey,
+    new TextEncoder().encode(JSON.stringify(objekt))));
+  return { iv: b64ausBytes(nonce), ct: b64ausBytes(ct) };
+}
+async function entwickle(kekKey, w){ return entschluesseleJSON(kekKey, w.iv, w.ct); }
+async function adminKekKey(){
+  if(!SESSION || SESSION.rolle!=="admin" || !SESSION.kek)
+    throw new Error("Bitte einmal ab- und neu anmelden (Admin-Schlüssel fehlt in der Sitzung).");
+  return importKek(b64zu(SESSION.kek));
+}
+function zufallsHex(nBytes){
+  return [...crypto.getRandomValues(new Uint8Array(nBytes))]
+    .map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+async function entschluesseleJSON(key, ivB64, ctB64){
+  const klar = await crypto.subtle.decrypt({name:"AES-GCM", iv:b64zu(ivB64)}, key, b64zu(ctB64));
+  return JSON.parse(new TextDecoder().decode(klar));
+}
+async function importiereVaultKey(kB64){
+  /* encrypt zusätzlich zu decrypt: der Admin-Upload verschlüsselt im Browser */
+  return crypto.subtle.importKey("raw", b64zu(kB64), {name:"AES-GCM"}, false, ["encrypt","decrypt"]);
+}
+async function entschluesseleBlock(key, puffer){
+  const bytes = new Uint8Array(puffer);
+  if(bytes.length < 13) throw new Error("Datei beschädigt");
+  return crypto.subtle.decrypt({name:"AES-GCM", iv:bytes.slice(0,12)}, key, bytes.slice(12));
+}
+async function verschluesseleBlock(key, klartextBuf){
+  /* Gegenstück zu build.py: 12-B-Nonce || AES-256-GCM-Chiffrat */
+  const nonce = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM", iv:nonce}, key, klartextBuf));
+  const aus = new Uint8Array(12 + ct.length);
+  aus.set(nonce); aus.set(ct, 12);
+  return aus;
+}
+
+/* ═══════════════════════════ Zustand ════════════════════════════════════ */
+const SESSION_KEY = "portal_session_v1";
+const SEM_KEY = "dash_sem", KLASSE_KEY = "dash_klasse", THEME_KEY = "dash_theme";
+let INDEX = null;         // vaults/index.json (öffentlich, ohne Geheimnisse)
+let SESSION = null;       // { rolle, label, vaults:[{id,k,manifest}] }
+let DATEN = null;         // { klassen:{ key:{ name, faecher, module, bereiche:Set } } }
+const state = { klasse:null, sem:loadSem(), view:"home", modul:null };
+const vaultKeyCache = new Map();   // vaultId → CryptoKey
+const blobCache = new Map();       // dateiId → BlobURL
+
+function loadSem(){ try{ const v=localStorage.getItem(SEM_KEY); if(v==="1"||v==="2"||v==="3") return Number(v); if(v==="alle") return "alle"; }catch(e){} return 1; }
+
+async function ladeIndex(){
+  if(INDEX) return INDEX;
+  const r = await fetch("vaults/index.json", {cache:"no-store"});
+  if(!r.ok) throw new Error("index");
+  INDEX = await r.json();
+  $("#h-jahr").textContent = INDEX.schuljahr || "–";
+  return INDEX;
+}
+
+/* ═══════════════════════════ Anmeldung ══════════════════════════════════ */
+async function pruefePasswort(passwort){
+  const idx = await ladeIndex();
+  for(const pr of idx.principals){
+    const kekRoh = await leiteKekRoh(passwort, pr.salt, idx.kdf.iter);
+    const kek = await importKek(kekRoh);
+    const offen = [];
+    for(const v of idx.vaults){
+      for(const w of v.wraps){
+        if(w.p !== pr.id) continue;
+        try{
+          const nutzlast = await entschluesseleJSON(kek, w.iv, w.ct);
+          offen.push({ id:v.id, manifest:v.manifest, k:nutzlast.k,
+                       rolle:nutzlast.rolle, klasse:nutzlast.klasse, label:nutzlast.label });
+        }catch(e){ /* dieser Zugang passt nicht zu diesem Vault */ }
+      }
+    }
+    if(offen.length){
+      const rolle = offen.some(o=>o.rolle==="admin") ? "admin"
+                  : offen.some(o=>o.rolle==="prof")  ? "prof" : "schueler";
+      const session = { rolle, label: offen[0].label,
+               vaults: offen.map(o=>({id:o.id, k:o.k, manifest:o.manifest})) };
+      if(rolle === "admin"){ session.kek = b64ausBytes(kekRoh); session.pid = pr.id; }
+      return session;
+    }
+  }
+  return null;
+}
+
+async function ladeDaten(session){
+  const klassen = {};
+  for(const v of session.vaults){
+    let key = vaultKeyCache.get(v.id);
+    if(!key){ key = await importiereVaultKey(v.k); vaultKeyCache.set(v.id, key); }
+    const r = await fetch(v.manifest, {cache:"no-store"});
+    if(!r.ok) throw new Error("manifest");
+    const m = JSON.parse(new TextDecoder().decode(await entschluesseleBlock(key, await r.arrayBuffer())));
+
+    if(["__proto__","constructor","prototype"].includes(m.klasse)) continue;
+    const kl = klassen[m.klasse] ??= { key:m.klasse, name:m.name, faecher:[], module:{}, bereiche:new Set(), zeitraum:"semester" };
+    if(m.zeitraum) kl.zeitraum = m.zeitraum;
+    if(m.ref_einzel) kl.ref_einzel = true;
+    if(m.faecher && m.faecher.length) kl.faecher = m.faecher;
+    // Référentiels liegen im Schüler-Tresor: Lehrplan-Dokumente sollen auch
+    // Klassen-Logins offenstehen (Profs öffnen diesen Tresor ebenfalls).
+    if(m.bereich==="skripte"){ ["skripte","referentiels"].forEach(b=>kl.bereiche.add(b));
+                               kl.vaultSkripte = v.id; }
+    else { ["pruefungen","aufgaben","sonstiges"].forEach(b=>kl.bereiche.add(b));
+           kl.vaultIntern = v.id; }
+
+    for(const [mk, bereiche] of Object.entries(m.module||{})){
+      const ziel = kl.module[mk] ??= {};
+      for(const [bk, wert] of Object.entries(bereiche)){
+        if(bk==="referentiels"){
+          const refs = ziel.referentiels ??= {formation:null, evaluation:null, weitere:[]};
+          for(const slot of ["formation","evaluation"]){
+            if(wert[slot]){ wert[slot].vault=v.id; refs[slot]=wert[slot]; }
+          }
+          (wert.weitere||[]).forEach(e=>{ e.vault=v.id; refs.weitere.push(e); });
+        }else{
+          (wert||[]).forEach(e=>e.vault=v.id);
+          ziel[bk] = wert||[];
+        }
+      }
+    }
+  }
+  return { klassen };
+}
+
+function sessionSpeichern(s){ try{ sessionStorage.setItem(SESSION_KEY, JSON.stringify(s)); }catch(e){} }
+function sessionLesen(){ try{ return JSON.parse(sessionStorage.getItem(SESSION_KEY)||"null"); }catch(e){ return null; } }
+function abmelden(){
+  try{ sessionStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(TOKEN_KEY); }catch(e){}
+  blobCache.forEach(url=>URL.revokeObjectURL(url));
+  location.reload();
+}
+
+/* ═══════════════════════════ Login-Ansicht ══════════════════════════════ */
+function renderLogin(){
+  document.body.classList.remove("angemeldet");
+  $("#view").innerHTML = `
+  <div class="login-wrap"><div class="login-card">
+    <div class="logo">🔐</div>
+    <h2>Schuljahr-Portal</h2>
+    <div class="sub">Zugang für Klassen &amp; Lehrpersonen</div>
+    <form id="loginForm" autocomplete="on">
+      <input type="password" id="pw" placeholder="Passwort" autocomplete="current-password"
+             autofocus required aria-label="Passwort">
+      <button type="submit" id="loginBtn">Anmelden</button>
+    </form>
+    <div class="login-status" id="loginStatus"></div>
+    <div class="login-info">Jede Klasse und jede Lehrperson hat ein eigenes Passwort.<br>
+      Die Inhalte werden erst nach der Anmeldung in deinem Browser entschlüsselt.</div>
+  </div></div>`;
+  $("#pw").focus();
+  $("#loginForm").addEventListener("submit", async ev=>{
+    ev.preventDefault();
+    const pw = $("#pw").value;
+    if(!pw) return;
+    const btn = $("#loginBtn"), status = $("#loginStatus");
+    btn.disabled = true; status.classList.remove("fehler");
+    status.textContent = "Prüfe Zugang — Schlüssel wird abgeleitet …";
+    try{
+      const session = await pruefePasswort(pw);
+      $("#pw").value = "";
+      if(!session){
+        status.classList.add("fehler");
+        status.textContent = "Kein Zugang mit diesem Passwort gefunden.";
+        btn.disabled = false; $("#pw").focus();
+        return;
+      }
+      status.textContent = "Entschlüssele Inhalte …";
+      SESSION = session;
+      DATEN = await ladeDaten(session);
+      sessionSpeichern(session);
+      starteOberflaeche();
+    }catch(e){
+      status.classList.add("fehler");
+      status.textContent = "Fehler beim Laden — bitte Verbindung prüfen und neu versuchen.";
+      btn.disabled = false;
+    }
+  });
+}
+
+/* ═══════════════════════════ Portal-Ansicht ═════════════════════════════ */
+function AK(){ return DATEN.klassen[state.klasse]; }
+function faecher(){ return AK()?.faecher || []; }
+/* Modul-Key kommt aus dem Manifest (mkeys, von build.py erzeugt) — Fallback nur
+   für alte Manifeste. So können Python und JS nie unterschiedliche Keys bilden. */
+const modulKey = (f,sem)=> (f.mkeys && f.mkeys[sem]) || (f.modul[sem]||f.key).replace(/\s+/g,"");
+function docsOf(mk,katKey){ const m=AK().module[mk]; return (m && m[katKey]) || []; }
+function refsOf(mk){ const m=AK().module[mk]; return (m && m.referentiels) || {formation:null,evaluation:null,weitere:[]}; }
+function sichtbareKategorien(){ return KATEGORIEN.filter(k=>AK().bereiche.has(k.key)); }
+
+function rolleText(){
+  if(SESSION.rolle==="admin") return `Admin · ${SESSION.label}`;
+  if(SESSION.rolle==="prof")  return `Prof · ${SESSION.label}`;
+  return `Klasse ${SESSION.label.replace(/^Klasse\s+/i,"")} · Schüler`;
+}
+
+function starteOberflaeche(){
+  document.body.classList.add("angemeldet");
+  $("#rolleText").textContent = rolleText();
+  const keys = Object.keys(DATEN.klassen).sort();
+  let merk=null; try{ merk=localStorage.getItem(KLASSE_KEY); }catch(e){}
+  state.klasse = (merk && DATEN.klassen[merk]) ? merk : keys[0];
+  const sel = $("#klassenSelect");
+  sel.innerHTML = keys.map(k=>`<option value="${esc(k)}">${esc(DATEN.klassen[k].name)}</option>`).join("");
+  sel.value = state.klasse;
+  baueSeg();
+  sel.style.display = keys.length>1 ? "" : "none";
+  $("#logo").textContent = (AK()?.key || "PT").replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase();
+  document.title = "Portal · " + (INDEX.schuljahr||"");
+  state.view="home"; state.modul=null;
+  render();
+}
+
+/* Zeitraum je Klasse: DP-Klassen = 2 Semester, GIG/GSO = 3 Trimester */
+function perioden(){ return AK()?.zeitraum === "trimester" ? 3 : 2; }
+function periodenName(){ return AK()?.zeitraum === "trimester" ? "Trimester" : "Semester"; }
+function baueSeg(){
+  const n = perioden(), nm = periodenName();
+  if(state.sem !== "alle" && state.sem > n) state.sem = 1;
+  $("#seg").innerHTML = Array.from({length:n}, (_,i) =>
+    `<button data-sem="${i+1}">${nm} ${i+1}</button>`).join("") +
+    `<button data-sem="alle">Alle</button>`;
+  markSeg();
+}
+
+function moduleList(){
+  const sems = state.sem==="alle" ? Array.from({length:perioden()}, (_,i)=>i+1) : [state.sem];
+  const out=[];
+  sems.forEach(sem=> faecher().forEach(f=>{ if(f.modul[sem]) out.push({f,sem,mk:modulKey(f,sem)}); }));
+  return out;
+}
+
+function renderHome(){
+  const kats = sichtbareKategorien();
+  const zeigtRefs = AK().bereiche.has("referentiels");
+  const tiles = moduleList().map(({f,sem,mk})=>{
+    const refs = refsOf(mk);
+    const slots = refSlots();
+    const rf = slots.filter(s=>refs[s.key]).length;
+    const refChip = zeigtRefs ? `<span class="chip ${rf?'':'zero'}">📋 Réf. <b>${rf}/${slots.length}</b></span>` : "";
+    const chips = refChip + kats.map(k=>{
+      const n=docsOf(mk,k.key).length;
+      return `<span class="chip ${n?'':'zero'}">${k.icon} ${esc(k.name)} <b>${n}</b></span>`;
+    }).join("");
+    return `<button class="tile" data-modul="${esc(mk)}" style="--fach:${akzent(f.accent)}">
+      <div class="thead">
+        <div class="badge">${esc(f.name.slice(0,3))}</div>
+        <div><div class="mod">${esc(f.modul[sem])}</div><div class="fach">${esc(f.name)}</div></div>
+        ${state.sem==="alle"?`<span class="sem-tag">${periodenName()[0]}${sem}</span>`:""}
+      </div>
+      <div class="cats">${chips}</div>
+      <div class="go">Öffnen →</div>
+    </button>`;
+  }).join("");
+  $("#view").innerHTML = (tiles
+    ? `<div class="grid">${tiles}</div>`
+    : `<div class="empty-note">Für diese Klasse sind noch keine Fächer hinterlegt.</div>`)
+    + renderAdminKarte();
+  if(SESSION && SESSION.rolle==="admin"){
+    if($("#nkFaecher") && !$("#nkFaecher").children.length) nkFaecherNeu();
+    befuelleAdminSelects();
+  }
+}
+
+/* Verwaltungs-Karte — erscheint nur in der Admin-Sicht. Ein statisches Portal
+   kann das Repo nicht selbst verändern; verwaltet wird lokal per verwaltung.py. */
+function renderAdminKarte(){
+  if(!SESSION || SESSION.rolle!=="admin") return "";
+  const zeilen = Object.values(DATEN.klassen).sort((a,b)=>a.key.localeCompare(b.key)).map(kl=>{
+    let n=0;
+    Object.values(kl.module).forEach(m=>Object.values(m).forEach(v=>{
+      if(Array.isArray(v)) n+=v.length;
+      else if(v) n+=(v.formation?1:0)+(v.evaluation?1:0)+((v.weitere||[]).length);
+    }));
+    return `<li class="docrow"><span class="di">🏫</span>
+      <span class="dn">${esc(kl.name)}</span>
+      <span class="dg">${kl.faecher.length} Fächer · ${n} Datei(en) online</span></li>`;
+  }).join("");
+  const ersteKlasse = Object.keys(DATEN.klassen).sort()[0];
+  const zug = zaehleZugaenge();
+  return `<section class="cat modref" style="--fach:var(--accent)">
+    <h3><span class="ic">🛠️</span> Verwaltung <span class="hint-sub">nur in der Admin-Sicht</span>
+      <span class="cnt">${zug.voll} Profs/Admin · ${zug.klassen} Klassen-Logins</span></h3>
+    <ul class="doclist">${zeilen}</ul>
+
+    <div class="admin-token">
+      <b>🔑 GitHub-Token</b> <span class="up-sub">für Hochladen &amp; Kollegen anlegen — nur in dieser Sitzung</span>
+      <input type="password" id="upToken" placeholder="GitHub-Token (fine-grained, Contents R/W)"
+        autocomplete="off" value="${esc(tokenLesen())}" aria-label="GitHub-Token">
+      <span class="tok-hilfe"><a href="https://github.com/settings/personal-access-tokens/new"
+        target="_blank" rel="noopener">Token anlegen</a> → Only select repositories →
+        <code>schuljahr-portal</code>, Permission <i>Contents: Read and write</i>.</span>
+    </div>
+
+    <div class="admin-block">
+      <b>📤 Datei hochladen</b> <span class="up-sub">verschlüsselt im Browser → nach 1–2 min online</span>
+      <div class="up-zeile">
+        <select id="upKlasse" aria-label="Klasse">${Object.keys(DATEN.klassen).sort().map(k=>
+          `<option value="${esc(k)}">${esc(DATEN.klassen[k].name)}</option>`).join("")}</select>
+        <select id="upModul" aria-label="Modul">${adminModulOptionen(ersteKlasse)}</select>
+        <select id="upBereich" aria-label="Bereich">${adminBereichOptionen(ersteKlasse)}</select>
+      </div>
+      <div class="up-zeile">
+        <input type="file" id="upDatei" aria-label="Datei">
+        <button class="btn up-btn" id="upStart">Verschlüsseln &amp; hochladen</button>
+      </div>
+      <div class="up-status" id="upStatus"></div>
+      <div class="up-merken">Arbeitest du rein im Web, bist du hier fertig. ⚠️ Nur falls du
+        wieder <b>am Mac baust</b>: Datei vorher auch in den OneDrive-Bereichsordner legen —
+        der Mac-Build baut aus OneDrive und der Ein-Klick-Button warnt dich vorher.</div>
+    </div>
+
+    <div class="admin-block">
+      <b>👥 Neuen Kollegen (Prof) anlegen</b> <span class="up-sub">eigenes Login, sieht alle Klassen außer Noten</span>
+      <div class="up-zeile">
+        <input type="text" id="npName" placeholder="Name, z. B. Marc Lichter"
+          autocomplete="off" aria-label="Name des Kollegen">
+        <button class="btn up-btn" id="npStart">Kollegen anlegen</button>
+      </div>
+      <div class="up-status" id="npStatus"></div>
+      <div class="np-ausgabe" id="npAusgabe"></div>
+      <div class="up-merken">⚠️ <b>Nur Admin.</b> Kollegen können selbst keine Zugänge anlegen
+        (Panel nur in deiner Sicht, Schreiben braucht dein Token, Freischalten deinen
+        Admin-Schlüssel). Web-only? Dann fertig. Nur falls du wieder am Mac baust: Passwort
+        vorher in <code>zugangsdaten.json</code> nachtragen (Snippet erscheint oben).</div>
+    </div>
+
+    <details class="admin-block admin-falt" ${nkAusgabeHtml ? "open" : ""}>
+      <summary>🏫 <b>Neue Klasse anlegen</b> <span class="up-sub">komplett im Browser — Tresore, Login, Freischaltung für alle Profs</span></summary>
+      <div class="up-zeile">
+        <input type="text" id="nkKuerzel" placeholder="Kürzel, z. B. DP3ET" autocomplete="off"
+          aria-label="Klassen-Kürzel">
+        <input type="text" id="nkName" placeholder="Anzeigename (leer = Kürzel)" autocomplete="off"
+          aria-label="Anzeigename">
+        <select id="nkZeitraum" aria-label="Zeitraum">
+          <option value="semester">2 Semester (DP…)</option>
+          <option value="trimester">3 Trimester (GIG/GSO…)</option>
+        </select>
+      </div>
+      <div id="nkFaecher"></div>
+      <div class="up-zeile">
+        <button class="btn ghost" id="nkFachPlus" type="button">+ Fach</button>
+        <button class="btn up-btn" id="nkStart">Klasse anlegen</button>
+      </div>
+      <div class="up-status" id="nkStatus"></div>
+      <div class="np-ausgabe" id="nkAusgabe">${nkAusgabeHtml}</div>
+      <div class="up-merken">Modulfelder: leer = „FACH 1/2/3" automatisch · gleicher Name in
+        allen Zeiträumen = Ganzjahresfach (ein Ordner) · <code>-</code> = in dem Zeitraum kein Modul.</div>
+    </details>
+
+    <details class="admin-block admin-falt">
+      <summary>🔑 <b>Passwort neu würfeln</b> <span class="up-sub">für Klassen, Kollegen oder dich selbst</span></summary>
+      <div class="up-zeile">
+        <select id="pwWer" aria-label="Zugang wählen"><option value="">Zugänge werden geladen …</option></select>
+        <button class="btn up-btn" id="pwStart">Neues Passwort erzeugen</button>
+      </div>
+      <div class="up-status" id="pwStatus"></div>
+      <div class="np-ausgabe" id="pwAusgabe"></div>
+      <div class="up-merken">Das alte Passwort ist danach sofort ungültig. Achtung: Bereits
+        veröffentlichte alte Stände bleiben in der Git-Historie mit dem alten Passwort lesbar.</div>
+    </details>
+
+    <details class="admin-block admin-falt">
+      <summary>🗑️ <b>Zugang entfernen</b> <span class="up-sub">Klasse (samt Tresoren) oder Kollege</span></summary>
+      <div class="up-zeile">
+        <select id="entfWer" aria-label="Zugang wählen"><option value="">Zugänge werden geladen …</option></select>
+        <button class="btn up-btn" id="entfStart">Endgültig entfernen</button>
+      </div>
+      <div class="up-status" id="entfStatus"></div>
+      <div class="up-merken">⚠️ Entfernen sperrt das Login sofort — ist aber kein
+        kryptographischer Widerruf: Wer sein Passwort bzw. seine Schlüssel schon kopiert
+        hat, kann über die öffentliche Git-Historie alte und (bei Profs) auch künftige
+        Dateien dieser Tresore weiter entschlüsseln. Im Ernstfall nach dem Entfernen am
+        Mac neu bauen (<code>build.py</code> erzeugt frische Tresor-Schlüssel) und
+        heikle Inhalte als offengelegt betrachten.</div>
+    </details>
+
+    <div class="admin-hilfe">
+      Dateien löschen: 🗑️-Knopf neben jeder Datei in der Detailansicht (nur in deiner
+      Admin-Sicht). Alles Weitere steht im Handbuch.
+    </div>
+  </section>`;
+}
+function zaehleZugaenge(){
+  /* aus index.json ableitbar: wer in ALLEN Vaults einen Wrap hat, ist Prof/Admin;
+     wer nur in einem einzelnen (Skripte-)Vault steht, ist ein Klassen-Login. */
+  if(!INDEX) return {voll:0, klassen:0};
+  const nVaults = INDEX.vaults.length;
+  const proP = {};
+  INDEX.vaults.forEach(v=>v.wraps.forEach(w=>{ proP[w.p] = (proP[w.p]||0)+1; }));
+  let voll=0, klassen=0;
+  Object.values(proP).forEach(n=>{ if(n>=nVaults && nVaults>0) voll++; else klassen++; });
+  return {voll, klassen};
+}
+
+/* ─────────────────────── Admin-Upload (GitHub-API) ─────────────────────── */
+const REPO = "temmchen/schuljahr-portal";
+const TOKEN_KEY = "portal_gh_token";
+function tokenLesen(){ try{ return sessionStorage.getItem(TOKEN_KEY)||""; }catch(e){ return ""; } }
+function adminBereichOptionen(klasse){
+  const kl = DATEN.klassen[klasse] || {};
+  const refs = kl.ref_einzel
+    ? `<option value="ref_formation">📋 Programme (ersetzt vorhandenes)</option>`
+    : `<option value="ref_formation">📋 Référentiel de formation (ersetzt vorhandenes)</option>
+       <option value="ref_evaluation">📋 Référentiel d'évaluation (ersetzt vorhandenes)</option>`;
+  return `<option value="skripte">📘 Skripte (Klasse + Profs)</option>
+    <option value="pruefungen">📝 Prüfungen (nur Profs)</option>
+    <option value="aufgaben">✏️ Aufgaben (nur Profs)</option>
+    <option value="sonstiges">🗂️ Sonstiges (nur Profs)</option>
+    ${refs}
+    <option value="ref_weitere">📋 Référentiels · weitere Datei</option>`;
+}
+
+function adminModulOptionen(klasse){
+  const kl = DATEN.klassen[klasse];
+  const opts = [];
+  const gesehen = new Set();
+  (kl?.faecher||[]).forEach(f=>{ [1,2,3].forEach(sem=>{
+    if(!f.modul[sem]) return;
+    const mk = modulKey(f,sem);
+    if(gesehen.has(mk)) return;
+    gesehen.add(mk);
+    opts.push(`<option value="${esc(mk)}">${esc(f.modul[sem])}</option>`); });});
+  return opts.join("");
+}
+async function ghAPI(pfad, opts, token){
+  const r = await fetch(`https://api.github.com/repos/${REPO}/${pfad}`, {
+    ...opts,
+    headers: { "Authorization": "Bearer "+token, "Accept": "application/vnd.github+json",
+               "X-GitHub-Api-Version": "2022-11-28", ...(opts.headers||{}) }});
+  if(!r.ok){
+    let detail=""; try{ detail=(await r.json()).message||""; }catch(e){}
+    if(r.status===401) throw new Error("Token ungültig oder abgelaufen (401).");
+    if(r.status===403) throw new Error("Token hat keine Schreibrechte für dieses Repo (403).");
+    if(r.status===404) throw new Error("Nicht gefunden (404) — Token-Repo-Zugriff prüfen.");
+    throw new Error(`GitHub ${r.status}: ${detail}`);
+  }
+  return r.json();
+}
+function b64ausBytes(bytes){
+  let s=""; const N=0x8000;
+  for(let i=0;i<bytes.length;i+=N) s += String.fromCharCode.apply(null, bytes.subarray(i, i+N));
+  return btoa(s);
+}
+async function adminUpload(){
+  const status = $("#upStatus"), knopf = $("#upStart");
+  const setze = t => { status.textContent = t; };
+  const klasse = $("#upKlasse").value, mk = $("#upModul").value, bereich = $("#upBereich").value;
+  const datei = $("#upDatei").files[0];
+  const token = $("#upToken").value.trim();
+  if(!datei){ setze("Bitte zuerst eine Datei auswählen."); return; }
+  if(!token){ setze("Bitte GitHub-Token eintragen (Anleitung unten)."); return; }
+  if(datei.size > 90*1024*1024){ setze("Datei zu groß — GitHub-Limit ist 100 MB, bitte am Mac hochladen."); return; }
+  const kl = DATEN.klassen[klasse];
+  const vid = (bereich==="skripte" || bereich.startsWith("ref_"))
+              ? kl.vaultSkripte : kl.vaultIntern;
+  const v = SESSION.vaults.find(x=>x.id===vid);
+  if(!v){ setze("Kein Zugriff auf diesen Bereich."); return; }
+  const name = datei.name.normalize("NFC").replace(/\.[^.]+$/,"").replace(/_/g," ").trim() || "Dokument";
+  const typ = (datei.name.match(/\.([A-Za-z0-9]+)$/)||[,""])[1].toLowerCase();
+  knopf.disabled = true;
+  try{
+    try{ sessionStorage.setItem(TOKEN_KEY, token); }catch(e){}
+    let key = vaultKeyCache.get(v.id);
+    if(!key){ key = await importiereVaultKey(v.k); vaultKeyCache.set(v.id, key); }
+    setze("Verschlüssele „" + name + "“ …");
+    const enc = await verschluesseleBlock(key, await datei.arrayBuffer());
+    const fid = [...crypto.getRandomValues(new Uint8Array(12))]
+      .map(b=>b.toString(16).padStart(2,"0")).join("");
+    setze("Lade aktuelles Manifest von GitHub …");
+    const mAntwort = await ghAPI(`contents/docs/vaults/${vid}/m.enc?ref=main`, {}, token);
+    const mBytes = b64zu(mAntwort.content.replace(/\s/g,""));
+    const manifest = JSON.parse(new TextDecoder().decode(await entschluesseleBlock(key, mBytes)));
+    const eintrag = { name, typ, id: fid, groesse: datei.size };
+    let alteBlobId = null;
+    if(bereich.startsWith("ref_")){
+      const refs = ((manifest.module[mk] ??= {}).referentiels ??=
+        { formation:null, evaluation:null, weitere:[] });
+      if(bereich === "ref_weitere"){
+        refs.weitere ??= [];
+        if(refs.weitere.some(e=>(e.name||"").normalize("NFC")===name)){
+          setze(`„${name}" gibt es dort schon — bitte umbenennen.`);
+          knopf.disabled = false; return;
+        }
+        refs.weitere.push(eintrag);
+        refs.weitere.sort((a,b)=>a.name.localeCompare(b.name,"de"));
+      } else {
+        const slot = bereich === "ref_formation" ? "formation" : "evaluation";
+        if(refs[slot] && !confirm(
+          `Für dieses Modul ist bereits ein Référentiel de ${slot==="formation"?"formation":"l'évaluation"} hinterlegt — ersetzen?`)){
+          setze("Abgebrochen — vorhandenes Référentiel bleibt.");
+          knopf.disabled = false; return;
+        }
+        alteBlobId = refs[slot]?.id || null;
+        refs[slot] = eintrag;
+      }
+    } else {
+      const liste = ((manifest.module[mk] ??= {})[bereich] ??= []);
+      if(liste.some(e=>(e.name||"").normalize("NFC")===name)){
+        setze(`„${name}" gibt es in diesem Bereich schon — bitte umbenennen oder erst löschen.`);
+        knopf.disabled = false; return;
+      }
+      liste.push(eintrag);
+      liste.sort((a,b)=>a.name.localeCompare(b.name,"de"));
+    }
+    const mNeu = await verschluesseleBlock(key, new TextEncoder().encode(JSON.stringify(manifest)));
+    setze("Lade verschlüsselte Datei hoch …");
+    await ghAPI(`contents/docs/vaults/${vid}/f/${fid}.enc`, {method:"PUT", body: JSON.stringify({
+      message:`Portal-Upload: ${bereich}/${mk}`, branch:"main", content: b64ausBytes(enc)})}, token);
+    setze("Aktualisiere Manifest …");
+    await ghAPI(`contents/docs/vaults/${vid}/m.enc`, {method:"PUT", body: JSON.stringify({
+      message:`Portal-Upload Manifest: ${bereich}/${mk}`, branch:"main",
+      sha: mAntwort.sha, content: b64ausBytes(mNeu)})}, token);
+    if(alteBlobId){
+      try{
+        const fAlt = await ghAPI(`contents/docs/vaults/${vid}/f/${alteBlobId}.enc?ref=main`, {}, token);
+        await ghAPI(`contents/docs/vaults/${vid}/f/${alteBlobId}.enc`, {method:"DELETE",
+          body: JSON.stringify({ message:"Portal-Upload: ersetztes Référentiel entfernt",
+          branch:"main", sha: fAlt.sha })}, token);
+      }catch(e){ /* altes Blob bleibt als toter Ballast — unkritisch */ }
+    }
+    if(bereich.startsWith("ref_")){
+      const refsLokal = ((DATEN.klassen[klasse].module[mk] ??= {}).referentiels ??=
+        { formation:null, evaluation:null, weitere:[] });
+      if(bereich === "ref_weitere"){ (refsLokal.weitere ??= []).push({ ...eintrag, vault: vid }); }
+      else refsLokal[bereich === "ref_formation" ? "formation" : "evaluation"] = { ...eintrag, vault: vid };
+    } else {
+      const lokal = ((DATEN.klassen[klasse].module[mk] ??= {})[bereich] ??= []);
+      lokal.push({ ...eintrag, vault: vid });
+      lokal.sort((a,b)=>a.name.localeCompare(b.name,"de"));
+    }
+    setze("");
+    toast(`✅ „${name}" hochgeladen — in 1–2 min für alle sichtbar.`);
+    $("#upDatei").value = "";
+    render();
+  }catch(e){
+    setze("Fehler: " + e.message);
+  }finally{
+    knopf.disabled = false;
+  }
+}
+
+/* ───────────────── Neuen Kollegen (Prof) anlegen — nur Admin ───────────── */
+const PW_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789";   // wie build.py: ohne 0/O,1/l
+function neuesPasswort(gruppen){
+  const w = crypto.getRandomValues(new Uint8Array(gruppen*4));
+  let s = "";
+  for(let i=0;i<gruppen*4;i++){ if(i && i%4===0) s+="-"; s += PW_ALPHABET[w[i] % PW_ALPHABET.length]; }
+  return s;
+}
+async function adminNeuerProf(){
+  const status = $("#npStatus"), knopf = $("#npStart"), ausgabe = $("#npAusgabe");
+  const setze = t => { status.textContent = t; };
+  if(!SESSION || SESSION.rolle!=="admin"){ setze("Nur der Admin darf Zugänge anlegen."); return; }
+  const name = $("#npName").value.trim();
+  const token = $("#upToken").value.trim();
+  if(!name){ setze("Bitte einen Namen eintragen."); return; }
+  if(!token){ setze("Bitte oben das GitHub-Token eintragen."); return; }
+  knopf.disabled = true;
+  try{
+    try{ sessionStorage.setItem(TOKEN_KEY, token); }catch(e){}
+    setze("Lade index.json von GitHub …");
+    const idxAntwort = await ghAPI("contents/docs/vaults/index.json?ref=main", {}, token);
+    const idx = JSON.parse(new TextDecoder().decode(b64zu(idxAntwort.content.replace(/\s/g,""))));
+
+    // eindeutige Principal-ID (kollidiert nicht mit build.py-IDs p0..pN)
+    const vorhanden = new Set(idx.principals.map(p=>p.id));
+    let pid; do { pid = "pw" + [...crypto.getRandomValues(new Uint8Array(4))]
+      .map(b=>b.toString(16).padStart(2,"0")).join(""); } while(vorhanden.has(pid));
+
+    const passwort = neuesPasswort(4);
+    const saltBytes = crypto.getRandomValues(new Uint8Array(16));
+    setze("Leite Schlüssel ab (kann kurz dauern) …");
+    const kekRoh = await leiteKekRoh(passwort, b64ausBytes(saltBytes), idx.kdf.iter);
+    const kek = await importKek(kekRoh);
+
+    // Für JEDEN Vault, auf den der Admin Zugriff hat, den Vault-Schlüssel einwickeln
+    setze("Wickle Tresor-Schlüssel für den neuen Zugang ein …");
+    let gewickelt = 0;
+    for(const v of idx.vaults){
+      const meins = SESSION.vaults.find(x=>x.id===v.id);
+      if(!meins) throw new Error("Tresor-Schlüssel fehlt in deiner Sitzung (in anderem "
+        + "Tab/Gerät angelegt?) — bitte einmal ab- und neu anmelden.");
+      const nutzlast = JSON.stringify({ k: meins.k, rolle:"prof", klasse:null, label:name });
+      const nonce = crypto.getRandomValues(new Uint8Array(12));
+      const ct = new Uint8Array(await crypto.subtle.encrypt(
+        {name:"AES-GCM", iv:nonce}, kek, new TextEncoder().encode(nutzlast)));
+      v.wraps.push({ iv: b64ausBytes(nonce), ct: b64ausBytes(ct), p: pid });
+      gewickelt++;
+    }
+    if(!gewickelt){ setze("Keine Tresore zum Freischalten gefunden."); knopf.disabled=false; return; }
+    idx.principals.push({ id: pid, salt: b64ausBytes(saltBytes) });
+    // in den Admin-Schlüsselbund aufnehmen: so bekommt der neue Kollege auch
+    // künftige, im Browser angelegte Klassen automatisch freigeschaltet
+    (idx.kekw ??= {})[pid] = await wickleEin(await adminKekKey(),
+      { kek: b64ausBytes(kekRoh), rolle: "prof", klasse: null, label: name });
+
+    setze("Speichere index.json …");
+    await ghAPI("contents/docs/vaults/index.json", {method:"PUT", body: JSON.stringify({
+      message:`Portal: neuer Kollege ${name}`, branch:"main",
+      sha: idxAntwort.sha,
+      content: b64ausBytes(new TextEncoder().encode(JSON.stringify(idx, null, 1)))})}, token);
+
+    INDEX = idx;   // lokale Anzeige aktualisieren (Zähler)
+    setze("");
+    ausgabe.innerHTML = `<div class="np-erfolg">✅ <b>${esc(name)}</b> angelegt — Login in 1–2 min aktiv.
+      <div class="np-pw">Passwort: <code>${esc(passwort)}</code></div>
+      <div class="np-snippet"><b>Jetzt am Mac in <code>zugangsdaten.json</code> → <code>profs</code> eintragen</b>
+      (sonst löscht der nächste <code>build.py</code> den Zugang):
+      <pre>{ "name": ${esc(JSON.stringify(name))}, "passwort": "${esc(passwort)}" }</pre></div></div>`;
+    toast(`✅ Kollege „${name}“ angelegt. Passwort notieren und in zugangsdaten.json eintragen!`);
+    $("#npName").value = "";
+    // Zähler im Kopf der Karte aktualisieren
+    const z = zaehleZugaenge(); const cnt = document.querySelector(".modref h3 .cnt");
+    if(cnt) cnt.textContent = `${z.voll} Profs/Admin · ${z.klassen} Klassen-Logins`;
+  }catch(e){
+    setze("Fehler: " + e.message);
+  }finally{
+    knopf.disabled = false;
+  }
+}
+
+/* ───────── Voll-Web-Verwaltung: Klasse / Passwort / Entfernen / Löschen ──
+   Alles nur für den Admin: Panels erscheinen nur in seiner Sicht, jede
+   Funktion prüft die Rolle, Schreiben braucht sein GitHub-Token und das
+   Freischalten/Rotieren zusätzlich seinen Admin-Schlüssel (kekw). */
+
+async function alleEmpfaenger(idx, adminKek){
+  /* Admin selbst + alle Profs aus dem Schlüsselbund — Empfänger neuer Vault-Schlüssel */
+  const emp = [{ pid: SESSION.pid, kek: adminKek, rolle: "admin", klasse: null, label: SESSION.label }];
+  for(const [pid, w] of Object.entries(idx.kekw || {})){
+    try{
+      const meta = await entwickle(adminKek, w);
+      if(meta.rolle === "prof")
+        emp.push({ pid, kek: await importKek(b64zu(meta.kek)),
+                   rolle: "prof", klasse: null, label: meta.label });
+    }catch(e){ /* Eintrag nicht lesbar → überspringen */ }
+  }
+  return emp;
+}
+
+async function befuelleAdminSelects(){
+  if(!SESSION || SESSION.rolle!=="admin" || !SESSION.kek || !INDEX) return;
+  const pwSel = $("#pwWer"), entfSel = $("#entfWer");
+  if(!pwSel || pwSel.dataset.geladen) return;
+  pwSel.dataset.geladen = "1";
+  try{
+    const adminKek = await adminKekKey();
+    const opts = [];
+    for(const [pid, w] of Object.entries(INDEX.kekw || {})){
+      try{
+        const meta = await entwickle(adminKek, w);
+        const typ = meta.rolle==="schueler" ? "Klasse" : "Prof";
+        opts.push({ pid, text: `${typ}: ${meta.label.replace(/^Klasse\s+/i,"")}` });
+      }catch(e){}
+    }
+    opts.sort((a,b)=>a.text.localeCompare(b.text,"de"));
+    pwSel.innerHTML = opts.map(o=>`<option value="${esc(o.pid)}">${esc(o.text)}</option>`).join("")
+      + `<option value="__selbst__">Admin (du selbst)</option>`;
+    entfSel.innerHTML = opts.map(o=>`<option value="${esc(o.pid)}">${esc(o.text)}</option>`).join("");
+    if(!opts.length) entfSel.innerHTML = `<option value="">keine weiteren Zugänge</option>`;
+  }catch(e){
+    pwSel.innerHTML = entfSel.innerHTML = `<option value="">${esc(e.message)}</option>`;
+  }
+}
+
+async function adminNeueKlasse(){
+  const status = $("#nkStatus"), knopf = $("#nkStart"), ausgabe = $("#nkAusgabe");
+  const setze = t => { status.textContent = t; };
+  if(!SESSION || SESSION.rolle!=="admin"){ setze("Nur der Admin darf Klassen anlegen."); return; }
+  const token = $("#upToken").value.trim();
+  if(!token){ setze("Bitte oben das GitHub-Token eintragen."); return; }
+  const kuerzel = $("#nkKuerzel").value.trim();
+  if(!/^[A-Za-z0-9_-]{2,}$/.test(kuerzel)){ setze("Kürzel bitte nur Buchstaben/Ziffern/-/_ (z. B. DP3ET)."); return; }
+  if(["__proto__","constructor","prototype"].includes(kuerzel)){ setze("Dieses Kürzel ist technisch reserviert — bitte anderes wählen."); return; }
+  if(Object.keys(DATEN.klassen).some(k=>k.toLowerCase()===kuerzel.toLowerCase())){
+    setze(`Klasse ${kuerzel} existiert schon.`); return; }
+  const name = $("#nkName").value.trim() || kuerzel;
+  const zeitraum = $("#nkZeitraum").value;
+  const n = zeitraum==="trimester" ? 3 : 2;
+  const faecher = [], mkZuFach = {};
+  for(const row of document.querySelectorAll(".nk-fach")){
+    const fname = row.querySelector(".nkf-name").value.trim();
+    if(!fname) continue;
+    const accent = row.querySelector(".nkf-farbe").value;
+    const modul = {};
+    row.querySelectorAll(".nkf-m").forEach(inp=>{
+      let v = inp.value.trim();
+      if(v==="-") return;
+      if(!v) v = `${fname} ${inp.dataset.z}`;
+      modul[inp.dataset.z] = v;
+    });
+    if(!Object.keys(modul).length) continue;
+    for(const mn of Object.values(modul)){
+      const mk = mn.replace(/\s+/g,"");
+      if(!mk){ setze(`Ungültiger Modulname im Fach ${fname}.`); return; }
+      if(mkZuFach[mk] && mkZuFach[mk] !== fname){
+        setze(`Modul „${mk}" ist zwei Fächern zugeordnet — bitte eindeutig benennen.`); return; }
+      mkZuFach[mk] = fname;
+    }
+    faecher.push({ key: fname.toUpperCase().replace(/\s+/g,""), name: fname, accent, modul });
+  }
+  if(!faecher.length){ setze("Bitte mindestens ein Fach mit Modul angeben."); return; }
+  knopf.disabled = true;
+  try{
+    try{ sessionStorage.setItem(TOKEN_KEY, token); }catch(e){}
+    const adminKek = await adminKekKey();
+    setze("Lade index.json von GitHub …");
+    const idxAntwort = await ghAPI("contents/docs/vaults/index.json?ref=main", {}, token);
+    const idx = JSON.parse(new TextDecoder().decode(b64zu(idxAntwort.content.replace(/\s/g,""))));
+
+    const vorhanden = new Set(idx.principals.map(pr=>pr.id));
+    let pid; do { pid = "pw" + zufallsHex(4); } while(vorhanden.has(pid));
+    const passwort = neuesPasswort(3);
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    setze("Leite Klassen-Schlüssel ab …");
+    const klassenKekRoh = await leiteKekRoh(passwort, b64ausBytes(salt), idx.kdf.iter);
+    const klassenKek = await importKek(klassenKekRoh);
+    setze("Schalte alle Profs frei …");
+    const empfaenger = await alleEmpfaenger(idx, adminKek);
+
+    const faecherMitKeys = faecher.map(f=>({ ...f,
+      mkeys: Object.fromEntries(Object.entries(f.modul).map(([z,mn])=>[z, mn.replace(/\s+/g,"")])) }));
+    const neueVaults = [];
+    for(const typ of ["skripte","intern"]){
+      const vid = zufallsHex(8);
+      const kRoh = crypto.getRandomValues(new Uint8Array(32));
+      const kB64 = b64ausBytes(kRoh);
+      const kKey = await importKek(kRoh);
+      const wraps = [];
+      if(typ==="skripte")
+        wraps.push({ ...(await wickleEin(klassenKek,
+          { k:kB64, rolle:"schueler", klasse:kuerzel, label:`Klasse ${name}` })), p: pid });
+      for(const e of empfaenger)
+        wraps.push({ ...(await wickleEin(e.kek,
+          { k:kB64, rolle:e.rolle, klasse:e.klasse, label:e.label })), p: e.pid });
+      const module = {};
+      for(const f of faecher) for(const mn of Object.values(f.modul)){
+        const mk = mn.replace(/\s+/g,"");
+        module[mk] = typ==="skripte"
+          ? { skripte: [], referentiels: { formation: null, evaluation: null, weitere: [] } }
+          : { pruefungen: [], aufgaben: [], sonstiges: [] };
+      }
+      const manifest = { klasse:kuerzel, name, bereich:typ, zeitraum,
+                         faecher:faecherMitKeys, module };
+      const mEnc = await verschluesseleBlock(kKey, new TextEncoder().encode(JSON.stringify(manifest)));
+      setze(`Lege Tresor ${typ} an …`);
+      await ghAPI(`contents/docs/vaults/${vid}/m.enc`, {method:"PUT", body: JSON.stringify({
+        message:`Portal: neue Klasse ${kuerzel} (${typ})`, branch:"main",
+        content: b64ausBytes(mEnc)})}, token);
+      idx.vaults.push({ id:vid, wraps, manifest:`vaults/${vid}/m.enc` });
+      neueVaults.push({ id:vid, k:kB64, manifest:`vaults/${vid}/m.enc`, typ });
+    }
+    idx.principals.push({ id:pid, salt:b64ausBytes(salt) });
+    (idx.kekw ??= {})[pid] = await wickleEin(adminKek,
+      { kek:b64ausBytes(klassenKekRoh), rolle:"schueler", klasse:kuerzel, label:`Klasse ${name}` });
+    setze("Speichere index.json …");
+    await ghAPI("contents/docs/vaults/index.json", {method:"PUT", body: JSON.stringify({
+      message:`Portal: neue Klasse ${kuerzel}`, branch:"main", sha: idxAntwort.sha,
+      content: b64ausBytes(new TextEncoder().encode(JSON.stringify(idx, null, 1)))})}, token);
+
+    INDEX = idx;
+    for(const v of neueVaults) SESSION.vaults.push({ id:v.id, k:v.k, manifest:v.manifest });
+    sessionSpeichern(SESSION);
+    const kl = DATEN.klassen[kuerzel] = { key:kuerzel, name, faecher:faecherMitKeys,
+      module:{}, bereiche:new Set(["skripte","pruefungen","aufgaben","sonstiges","referentiels"]),
+      zeitraum, vaultSkripte:neueVaults[0].id, vaultIntern:neueVaults[1].id };
+    for(const f of faecher) for(const mn of Object.values(f.modul))
+      kl.module[mn.replace(/\s+/g,"")] = { skripte:[], pruefungen:[], aufgaben:[], sonstiges:[],
+        referentiels:{ formation:null, evaluation:null, weitere:[] } };
+    setze("");
+    nkAusgabeHtml = `<div class="np-erfolg">✅ Klasse <b>${esc(name)}</b> angelegt — Login in 1–2 min aktiv.
+      <div class="np-pw">Passwort: <code>${esc(passwort)}</code></div>
+      <div class="np-snippet">Web-only? Fertig. Nur falls du wieder am Mac baust, vorher in
+      <code>zugangsdaten.json</code> ergänzen (inkl. Fächer) — der Ein-Klick-Button warnt dich.</div></div>`;
+    toast(`✅ Klasse „${name}" angelegt — Passwort notieren!`);
+    $("#nkKuerzel").value = ""; $("#nkName").value = "";
+    render();
+  }catch(e){
+    setze("Fehler: " + e.message);
+  }finally{
+    knopf.disabled = false;
+  }
+}
+
+async function adminPasswortNeu(){
+  const status = $("#pwStatus"), knopf = $("#pwStart"), ausgabe = $("#pwAusgabe");
+  const setze = t => { status.textContent = t; };
+  if(!SESSION || SESSION.rolle!=="admin"){ setze("Nur der Admin darf Passwörter ändern."); return; }
+  const token = $("#upToken").value.trim();
+  if(!token){ setze("Bitte oben das GitHub-Token eintragen."); return; }
+  const ziel = $("#pwWer").value;
+  if(!ziel){ setze("Bitte einen Zugang wählen."); return; }
+  knopf.disabled = true;
+  try{
+    try{ sessionStorage.setItem(TOKEN_KEY, token); }catch(e){}
+    const adminKek = await adminKekKey();
+    setze("Lade index.json …");
+    const idxAntwort = await ghAPI("contents/docs/vaults/index.json?ref=main", {}, token);
+    const idx = JSON.parse(new TextDecoder().decode(b64zu(idxAntwort.content.replace(/\s/g,""))));
+    const meineKeys = new Map(SESSION.vaults.map(v=>[v.id, v.k]));
+
+    let label, passwort, selbstNeuRoh = null;
+    if(ziel === "__selbst__"){
+      passwort = neuesPasswort(4); label = SESSION.label + " (Admin)";
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      setze("Leite neuen Admin-Schlüssel ab …");
+      const neuRoh = await leiteKekRoh(passwort, b64ausBytes(salt), idx.kdf.iter);
+      const neuKek = await importKek(neuRoh);
+      for(const v of idx.vaults){
+        if(!v.wraps.some(w=>w.p===SESSION.pid)) continue;
+        const kB64 = meineKeys.get(v.id);
+        if(!kB64) throw new Error("Tresor-Schlüssel fehlt in deiner Sitzung — bitte "
+          + "einmal ab- und neu anmelden, dann erneut rotieren.");
+        v.wraps = await Promise.all(v.wraps.map(async w => w.p!==SESSION.pid ? w :
+          ({ ...(await wickleEin(neuKek, { k:kB64, rolle:"admin", klasse:null, label:SESSION.label })), p:SESSION.pid })));
+      }
+      const kekwNeu = {};
+      for(const [pid, w] of Object.entries(idx.kekw || {}))
+        kekwNeu[pid] = await wickleEin(neuKek, await entwickle(adminKek, w));
+      idx.kekw = kekwNeu;
+      idx.principals.forEach(pr=>{ if(pr.id===SESSION.pid) pr.salt = b64ausBytes(salt); });
+      selbstNeuRoh = neuRoh;   // Session erst nach erfolgreichem PUT umstellen
+    } else {
+      if(!(idx.kekw||{})[ziel]){ setze("Zugang nicht im Schlüsselbund gefunden."); knopf.disabled=false; return; }
+      const meta = await entwickle(adminKek, idx.kekw[ziel]);
+      label = meta.label;
+      passwort = neuesPasswort(meta.rolle==="schueler" ? 3 : 4);
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      setze(`Leite neuen Schlüssel für ${label} ab …`);
+      const neuRoh = await leiteKekRoh(passwort, b64ausBytes(salt), idx.kdf.iter);
+      const neuKek = await importKek(neuRoh);
+      for(const v of idx.vaults){
+        if(!v.wraps.some(w=>w.p===ziel)) continue;
+        const kB64 = meineKeys.get(v.id);
+        if(!kB64) throw new Error("Tresor-Schlüssel fehlt in deiner Sitzung — bitte neu anmelden.");
+        v.wraps = await Promise.all(v.wraps.map(async w => w.p!==ziel ? w :
+          ({ ...(await wickleEin(neuKek, { k:kB64, rolle:meta.rolle, klasse:meta.klasse, label:meta.label })), p:ziel })));
+      }
+      idx.principals.forEach(pr=>{ if(pr.id===ziel) pr.salt = b64ausBytes(salt); });
+      idx.kekw[ziel] = await wickleEin(adminKek, { ...meta, kek:b64ausBytes(neuRoh) });
+    }
+    setze("Speichere index.json …");
+    await ghAPI("contents/docs/vaults/index.json", {method:"PUT", body: JSON.stringify({
+      message:`Portal: Passwort rotiert`, branch:"main", sha: idxAntwort.sha,
+      content: b64ausBytes(new TextEncoder().encode(JSON.stringify(idx, null, 1)))})}, token);
+    INDEX = idx;
+    if(selbstNeuRoh){ SESSION.kek = b64ausBytes(selbstNeuRoh); sessionSpeichern(SESSION); }
+    setze("");
+    ausgabe.innerHTML = `<div class="np-erfolg">✅ Neues Passwort für <b>${esc(label)}</b>
+      — gilt in 1–2 min: <div class="np-pw"><code>${esc(passwort)}</code></div>
+      <div class="np-snippet">Altes Passwort ist damit ungültig. Web-only? Fertig — sonst
+      auch in <code>zugangsdaten.json</code> nachtragen.</div></div>`;
+    toast("✅ Passwort rotiert — neues Passwort notieren!");
+  }catch(e){
+    setze("Fehler: " + e.message);
+  }finally{
+    knopf.disabled = false;
+  }
+}
+
+async function adminZugangEntfernen(){
+  const status = $("#entfStatus"), knopf = $("#entfStart");
+  const setze = t => { status.textContent = t; };
+  if(!SESSION || SESSION.rolle!=="admin"){ setze("Nur der Admin darf Zugänge entfernen."); return; }
+  const token = $("#upToken").value.trim();
+  if(!token){ setze("Bitte oben das GitHub-Token eintragen."); return; }
+  const ziel = $("#entfWer").value;
+  if(!ziel){ setze("Bitte einen Zugang wählen."); return; }
+  knopf.disabled = true;
+  try{
+    const adminKek = await adminKekKey();
+    const idxAntwort = await ghAPI("contents/docs/vaults/index.json?ref=main", {}, token);
+    const idx = JSON.parse(new TextDecoder().decode(b64zu(idxAntwort.content.replace(/\s/g,""))));
+    if(!(idx.kekw||{})[ziel]){ setze("Zugang nicht gefunden."); knopf.disabled=false; return; }
+    const meta = await entwickle(adminKek, idx.kekw[ziel]);
+    const istKlasse = meta.rolle === "schueler";
+    const frage = istKlasse
+      ? `Klasse „${meta.klasse}" ENDGÜLTIG entfernen? Beide Tresore samt aller Dateien verschwinden aus dem Portal.`
+      : `Zugang von „${meta.label}" endgültig entfernen?`;
+    if(!confirm(frage)){ setze("Abgebrochen."); knopf.disabled=false; return; }
+    try{ sessionStorage.setItem(TOKEN_KEY, token); }catch(e){}
+    if(istKlasse && !DATEN.klassen[meta.klasse]){
+      setze("Klasse nicht in deiner Sitzung — bitte einmal ab- und neu anmelden.");
+      knopf.disabled = false; return;
+    }
+    if(istKlasse && DATEN.klassen[meta.klasse]){
+      const kl = DATEN.klassen[meta.klasse];
+      const weg = new Set([kl.vaultSkripte, kl.vaultIntern].filter(Boolean));
+      if(idx.vaults.filter(v=>!weg.has(v.id)).length === 0){
+        setze("Die letzte Klasse kann nicht im Web entfernt werden — ohne Tresore wäre "
+          + "kein Login mehr möglich (auch deiner nicht). Erst eine neue Klasse anlegen.");
+        knopf.disabled = false; return;
+      }
+      idx.vaults = idx.vaults.filter(v=>!weg.has(v.id));
+      SESSION.vaults = SESSION.vaults.filter(v=>!weg.has(v.id));
+      delete DATEN.klassen[meta.klasse];
+      if(state.klasse === meta.klasse) state.klasse = Object.keys(DATEN.klassen).sort()[0];
+    } else {
+      idx.vaults.forEach(v=>{ v.wraps = v.wraps.filter(w=>w.p!==ziel); });
+    }
+    idx.principals = idx.principals.filter(pr=>pr.id!==ziel);
+    delete idx.kekw[ziel];
+    setze("Speichere index.json …");
+    await ghAPI("contents/docs/vaults/index.json", {method:"PUT", body: JSON.stringify({
+      message:`Portal: Zugang entfernt`, branch:"main", sha: idxAntwort.sha,
+      content: b64ausBytes(new TextEncoder().encode(JSON.stringify(idx, null, 1)))})}, token);
+    INDEX = idx; sessionSpeichern(SESSION);
+    setze("");
+    toast(`✅ ${istKlasse ? "Klasse "+meta.klasse : meta.label} entfernt — in 1–2 min wirksam.`);
+    starteOberflaeche();
+  }catch(e){
+    setze("Fehler: " + e.message);
+  }finally{
+    knopf.disabled = false;
+  }
+}
+
+async function adminDateiLoeschen(btn){
+  const { vault, id, name, mk, bereich } = btn.dataset;
+  if(!SESSION || SESSION.rolle!=="admin") return;
+  const token = $("#upToken") ? $("#upToken").value.trim() : tokenLesen();
+  if(!token){ toast("Zum Löschen erst das GitHub-Token in der Verwaltungskarte eintragen."); return; }
+  if(!confirm(`„${name}" endgültig aus dem Portal löschen?`)) return;
+  btn.disabled = true;
+  try{
+    const v = SESSION.vaults.find(x=>x.id===vault);
+    let key = vaultKeyCache.get(v.id);
+    if(!key){ key = await importiereVaultKey(v.k); vaultKeyCache.set(v.id, key); }
+    const mAntwort = await ghAPI(`contents/docs/vaults/${vault}/m.enc?ref=main`, {}, token);
+    const manifest = JSON.parse(new TextDecoder().decode(
+      await entschluesseleBlock(key, b64zu(mAntwort.content.replace(/\s/g,"")))));
+    if(bereich.startsWith("ref_")){
+      const refs = ((manifest.module||{})[mk]||{}).referentiels;
+      if(!refs) throw new Error("Référentiels im Manifest nicht gefunden.");
+      if(bereich === "ref_weitere"){ refs.weitere = (refs.weitere||[]).filter(e=>e.id!==id); }
+      else {
+        const slot = bereich === "ref_formation" ? "formation" : "evaluation";
+        if(refs[slot]?.id === id) refs[slot] = null;
+      }
+    } else {
+      const liste = ((manifest.module||{})[mk]||{})[bereich];
+      if(!Array.isArray(liste)) throw new Error("Eintrag im Manifest nicht gefunden.");
+      manifest.module[mk][bereich] = liste.filter(e=>e.id!==id);
+    }
+    const mNeu = await verschluesseleBlock(key, new TextEncoder().encode(JSON.stringify(manifest)));
+    await ghAPI(`contents/docs/vaults/${vault}/m.enc`, {method:"PUT", body: JSON.stringify({
+      message:`Portal: Datei entfernt (${bereich}/${mk})`, branch:"main",
+      sha: mAntwort.sha, content: b64ausBytes(mNeu)})}, token);
+    try{
+      const fMeta = await ghAPI(`contents/docs/vaults/${vault}/f/${id}.enc?ref=main`, {}, token);
+      await ghAPI(`contents/docs/vaults/${vault}/f/${id}.enc`, {method:"DELETE", body: JSON.stringify({
+        message:`Portal: Datei-Blob entfernt`, branch:"main", sha: fMeta.sha })}, token);
+    }catch(e){ /* Blob schon weg — Manifest zählt */ }
+    const modLokal = (DATEN.klassen[state.klasse]?.module||{})[mk]||{};
+    if(bereich.startsWith("ref_")){
+      const refs = modLokal.referentiels;
+      if(refs){
+        if(bereich === "ref_weitere") refs.weitere = (refs.weitere||[]).filter(e=>e.id!==id);
+        else {
+          const slot = bereich === "ref_formation" ? "formation" : "evaluation";
+          if(refs[slot]?.id === id) refs[slot] = null;
+        }
+      }
+    } else {
+      const lokal = modLokal[bereich];
+      if(Array.isArray(lokal)){
+        const i = lokal.findIndex(e=>e.id===id);
+        if(i>=0) lokal.splice(i,1);
+      }
+    }
+    toast(`✅ „${name}" gelöscht — in 1–2 min überall weg.`);
+    render();
+  }catch(e){
+    toast("Löschen fehlgeschlagen: " + e.message);
+    btn.disabled = false;
+  }
+}
+
+let nkAusgabeHtml = "";   // Erfolgsausgabe übersteht das Neu-Rendern der Karte
+
+function nkFachZeile(){
+  const n = ($("#nkZeitraum")?.value==="trimester") ? 3 : 2;
+  const nm = ($("#nkZeitraum")?.value==="trimester") ? "Trimester" : "Semester";
+  const felder = Array.from({length:n},(_,i)=>
+    `<input class="nkf-m" data-z="${i+1}" placeholder="Modul ${nm} ${i+1}" autocomplete="off">`).join("");
+  return `<div class="nk-fach up-zeile">
+    <input class="nkf-name" placeholder="Fach, z. B. ELETE" autocomplete="off">
+    <select class="nkf-farbe"><option value="eltec">blau</option>
+      <option value="mint">grün</option><option value="prodi">orange</option></select>
+    ${felder}</div>`;
+}
+function nkFaecherNeu(){
+  const box = $("#nkFaecher");
+  if(box) box.innerHTML = nkFachZeile();
+}
+
+function docRow(d, mitGroesse=true, loeschInfo=null){
+  const g = mitGroesse && d.groesse ? `<span class="dg">${groesseText(d.groesse)}</span>` : "";
+  const loesch = (loeschInfo && SESSION && SESSION.rolle==="admin")
+    ? `<button class="dl loeschen" title="Endgültig löschen" data-vault="${esc(d.vault)}"
+        data-id="${esc(d.id)}" data-name="${esc(d.name||"Dokument")}"
+        data-mk="${esc(loeschInfo.mk)}" data-bereich="${esc(loeschInfo.bereich)}">🗑️</button>` : "";
+  return `<li class="docrow"><span class="di">${FILE_SVG}</span>
+    <span class="dn">${esc(d.name||"Dokument")}</span>${g}
+    <button class="open" data-vault="${esc(d.vault)}" data-id="${esc(d.id)}"
+      data-typ="${esc(d.typ)}" data-name="${esc(d.name||"Dokument")}">Öffnen ↗</button>
+    <button class="dl" title="Herunterladen" data-vault="${esc(d.vault)}" data-id="${esc(d.id)}"
+      data-typ="${esc(d.typ)}" data-name="${esc(d.name||"Dokument")}" data-dl="1">${DL_SVG}</button>${loesch}</li>`;
+}
+
+function renderModulReferentiels(mk,f){
+  const refs = refsOf(mk);
+  const SLOTS = refSlots();
+  const rows = SLOTS.map(slot=>{
+    const r = refs[slot.key];
+    if(r) return docRow({...r, name:slot.name}, false, {mk, bereich:"ref_"+slot.key});
+    return `<li class="docrow"><span class="di">${FILE_SVG}</span>
+      <span class="dn">${esc(slot.name)}</span><span class="dg">noch nicht abgelegt</span></li>`;
+  }).join("") + (refs.weitere||[]).map(r=>docRow(r,false,{mk, bereich:"ref_weitere"})).join("");
+  const rf = SLOTS.filter(s=>refs[s.key]).length;
+  return `<section class="cat modref" style="--fach:${akzent(f.accent)}">
+    <h3><span class="ic">📋</span> Référentiels <span class="hint-sub">${esc(refUntertitel())}</span>
+    <span class="cnt">${rf}/${SLOTS.length}</span></h3>
+    <ul class="doclist">${rows}</ul>
+  </section>`;
+}
+
+function renderDetail(){
+  const mk = state.modul;
+  let found=null;
+  [1,2,3].forEach(sem=>faecher().forEach(f=>{ if(!found && modulKey(f,sem)===mk) found={f,sem,mk}; }));
+  if(!found){ state.view="home"; return renderHome(); }
+  const {f,sem}=found;
+  const kats = sichtbareKategorien().map(k=>{
+    const docs=docsOf(mk,k.key);
+    const body = docs.length
+      ? `<ul class="doclist">${docs.map(d=>docRow(d, true, {mk, bereich:k.key})).join("")}</ul>`
+      : `<div class="cat-empty">Noch nichts abgelegt.</div>`;
+    return `<section class="cat" style="--fach:${akzent(f.accent)}">
+      <h3><span class="ic">${k.icon}</span> ${esc(k.name)}<span class="cnt">${docs.length}</span></h3>
+      ${body}</section>`;
+  }).join("");
+  $("#view").innerHTML = `<div class="detail" style="--fach:${akzent(f.accent)}">
+    <button class="back">← Übersicht</button>
+    <div class="dhead">
+      <div class="badge">${esc(f.name.slice(0,3))}</div>
+      <div><div class="mod">${esc(f.modul[sem])}</div>
+        <div class="path">${esc(AK().name)} · ${esc(f.name)}</div></div>
+    </div>
+    ${AK().bereiche.has("referentiels") ? renderModulReferentiels(mk,f) : ""}
+    <div class="cats-wrap">${kats}</div>
+  </div>`;
+  window.scrollTo(0,0);
+}
+
+function render(){ if(!SESSION){ renderLogin(); return; } if(state.view==="home") renderHome(); else renderDetail(); }
+
+/* ═══════════════════════════ Datei öffnen/laden ═════════════════════════ */
+async function holeBlobURL(vaultId, dateiId, typ){
+  if(blobCache.has(dateiId)) return blobCache.get(dateiId);
+  const v = SESSION.vaults.find(x=>x.id===vaultId);
+  if(!v) throw new Error("kein Zugriff");
+  let key = vaultKeyCache.get(v.id);
+  if(!key){ key = await importiereVaultKey(v.k); vaultKeyCache.set(v.id, key); }
+  const r = await fetch(`vaults/${vaultId}/f/${dateiId}.enc`, {cache:"force-cache"});
+  if(!r.ok) throw new Error("laden");
+  const klar = await entschluesseleBlock(key, await r.arrayBuffer());
+  const url = URL.createObjectURL(new Blob([klar], {type:mime(typ)}));
+  blobCache.set(dateiId, url);
+  return url;
+}
+function ladeHerunter(url, name, typ){
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = /\.[a-z0-9]{1,5}$/i.test(name) ? name : (typ ? `${name}.${typ}` : name);
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function oeffneDatei(btn){
+  const {vault, id, typ, name, dl} = btn.dataset;
+  const nurDownload = !!dl || !SICHER_ANZEIGEN.has(typ);
+  btn.disabled = true;
+  let fenster = null;
+  if(!nurDownload){
+    fenster = window.open("", "_blank");
+    if(fenster){
+      fenster.document.title = name;
+      const p = fenster.document.createElement("p");
+      p.style.cssText = "font-family:sans-serif;padding:2em;color:#555";
+      p.textContent = "🔐 Entschlüssele „" + name + "“ …";
+      fenster.document.body.appendChild(p);
+    }
+  }
+  holeBlobURL(vault, id, typ).then(url=>{
+    if(nurDownload){
+      ladeHerunter(url, name, typ);
+      if(!dl) toast("Dieser Dateityp wird aus Sicherheitsgründen heruntergeladen statt angezeigt.");
+    }
+    else if(fenster){ fenster.location.replace(url); try{ fenster.opener = null; }catch(e){} }
+    else { ladeHerunter(url, name, typ); toast("Pop-up blockiert — Datei wurde stattdessen heruntergeladen."); }
+  }).catch(()=>{
+    if(fenster) fenster.close();
+    toast("Datei konnte nicht entschlüsselt werden. Neu anmelden und erneut versuchen.");
+  }).finally(()=>{ btn.disabled = false; });
+}
+
+/* ═══════════════════════════ Navigation & Kopf ══════════════════════════ */
+$("#view").addEventListener("click", e=>{
+  if(e.target.closest("#upStart")){ adminUpload(); return; }
+  if(e.target.closest("#npStart")){ adminNeuerProf(); return; }
+  if(e.target.closest("#nkStart")){ adminNeueKlasse(); return; }
+  if(e.target.closest("#pwStart")){ adminPasswortNeu(); return; }
+  if(e.target.closest("#entfStart")){ adminZugangEntfernen(); return; }
+  if(e.target.closest("#nkFachPlus")){ $("#nkFaecher").insertAdjacentHTML("beforeend", nkFachZeile()); return; }
+  const loesch = e.target.closest(".loeschen");
+  if(loesch){ adminDateiLoeschen(loesch); return; }
+  const open = e.target.closest(".open,.dl");
+  if(open){ oeffneDatei(open); return; }
+  const tile = e.target.closest(".tile");
+  if(tile){ state.view="detail"; state.modul=tile.dataset.modul; render(); return; }
+  if(e.target.closest(".back")){ state.view="home"; state.modul=null; render(); }
+});
+$("#view").addEventListener("change", e=>{
+  if(e.target.id==="upKlasse"){ $("#upModul").innerHTML = adminModulOptionen(e.target.value);
+                                $("#upBereich").innerHTML = adminBereichOptionen(e.target.value); }
+  if(e.target.id==="nkZeitraum"){ nkFaecherNeu(); }
+});
+$("#klassenSelect").addEventListener("change", e=>{
+  state.klasse = e.target.value;
+  try{ localStorage.setItem(KLASSE_KEY, state.klasse); }catch(err){}
+  $("#logo").textContent = state.klasse.replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase();
+  baueSeg();
+  state.view="home"; state.modul=null; render();
+});
+function markSeg(){ $$("#seg button").forEach(x=>x.classList.toggle("on", x.dataset.sem===String(state.sem))); }
+$("#seg").addEventListener("click", e=>{
+  const b = e.target.closest("button");
+  if(!b) return;
+  const v=b.dataset.sem; state.sem = v==="alle"?"alle":Number(v);
+  try{ localStorage.setItem(SEM_KEY, String(state.sem)); }catch(e){}
+  state.view="home"; state.modul=null; markSeg(); render();
+});
+markSeg();
+$("#logoutBtn").addEventListener("click", abmelden);
+
+/* ---------- Hell/Dunkel ---------- */
+const SUN  = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.3"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const MOON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+function applyTheme(t){
+  document.documentElement.setAttribute("data-theme",t);
+  const meta=document.querySelector('meta[name="theme-color"]'); if(meta) meta.setAttribute("content", t==="light"?"#eef1f7":"#0f1420");
+  const b=$("#themeBtn"); if(b) b.innerHTML = (t==="light" ? MOON+" Dunkel" : SUN+" Hell");
+}
+function currentTheme(){
+  const a=document.documentElement.getAttribute("data-theme");
+  if(a==="light"||a==="dark") return a;
+  try{ const v=localStorage.getItem(THEME_KEY); if(v==="light"||v==="dark") return v; }catch(e){}
+  return (window.matchMedia && matchMedia("(prefers-color-scheme: light)").matches) ? "light":"dark";
+}
+applyTheme(currentTheme());
+$("#themeBtn").addEventListener("click",()=>{
+  const next=(document.documentElement.getAttribute("data-theme")==="light")?"dark":"light";
+  try{ localStorage.setItem(THEME_KEY,next); }catch(e){}
+  applyTheme(next);
+});
+
+/* ═══════════════════════════ Start ══════════════════════════════════════ */
+(async function start(){
+  try{ await ladeIndex(); }catch(e){ $("#view").innerHTML =
+    `<div class="empty-note">Portal-Daten nicht gefunden — wurde <code>build.py</code> ausgeführt?</div>`; return; }
+  const alt = sessionLesen();
+  if(alt){
+    try{ SESSION = alt; DATEN = await ladeDaten(alt); starteOberflaeche(); return; }
+    catch(e){ SESSION=null; DATEN=null; try{ sessionStorage.removeItem(SESSION_KEY); }catch(_){}}
+  }
+  renderLogin();
+})();
+</script>
+</body>
+</html>
