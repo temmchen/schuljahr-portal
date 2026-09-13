@@ -201,12 +201,35 @@ def main():
     browser_aktionen = sorted(set(stand_alt.get("browser_aktionen", []))
                               | {z for z in neue_commits
                                  if z.startswith("Portal-Upload") or z.startswith("Portal:")})
+
+    # 1b) Browser-Uploads einsammeln — Dateien, die es nur im Portal gibt, nach
+    #     OneDrive holen. Danach sind beide Wege gleichwertig: der Build kann
+    #     sie nicht mehr überschreiben, weil sie jetzt ganz normal in OneDrive
+    #     liegen. (Bewusst gelöschte Dateien werden NICHT zurückgeholt.)
+    sammler = HIER / "web_einsammeln.py"
+    uploads_uebernommen = False
+    if sammler.exists():
+        sag("\n①b Browser-Uploads einsammeln …")
+        r = subprocess.run([sys.executable, str(sammler)], capture_output=True, text=True)
+        for zeile in (r.stdout or "").splitlines():
+            if zeile.strip():
+                sag("   " + zeile)
+        if r.returncode == 0:
+            uploads_uebernommen = True
+        else:
+            sag((r.stderr or "").strip())
+            sag("   ⚠️  Einsammeln unvollständig — Uploads bitte von Hand nach OneDrive legen.")
+
+    if uploads_uebernommen:      # Uploads sind erledigt; andere Portal-Aktionen bleiben offen
+        browser_aktionen = [z for z in browser_aktionen if not z.startswith("Portal-Upload")]
+
     if browser_aktionen:
         sag("\n⚠️  Es gibt Browser-Aktionen, die der Mac-Build ÜBERSCHREIBEN würde:")
         for z in browser_aktionen:
             sag(f"     · {z}")
-        sag("   → Hochgeladene Dateien zuerst in den OneDrive-Bereichsordner legen,")
-        sag("     neue Kollegen zuerst in zugangsdaten.json eintragen (Snippet im Portal).")
+        sag("   (Datei-Uploads werden automatisch eingesammelt — hier geht es um den Rest:)")
+        sag("   → neue Kollegen / Klassen zuerst in zugangsdaten.json eintragen")
+        sag("     (Snippet zeigt das Portal an), Passwort-Rotationen dort nachziehen.")
         antwort = frage("   Ist das alles übernommen? Sonst geht es verloren! [j/N] ")
         if antwort != "j":
             stand_alt["browser_aktionen"] = browser_aktionen

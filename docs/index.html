@@ -777,7 +777,13 @@ function b64ausBytes(bytes){
 }
 async function adminUpload(){
   const status = $("#upStatus"), knopf = $("#upStart");
-  const setze = t => { status.textContent = t; };
+  const setze = t => { status && (status.textContent = t); };
+  // Harte Sperre: NUR der Admin darf hochladen — weder Kollegen noch Klassen.
+  // (Die Karte wird für sie ohnehin nicht gerendert; diese Prüfung ist die
+  //  zweite Verteidigungslinie, genau wie bei Klassen/Profs/Passwörtern.
+  //  Die dritte und wirksamste ist das GitHub-Token: ohne Schreibrecht am
+  //  Repo geht gar nichts, und das Token hat nur Tom.)
+  if(!SESSION || SESSION.rolle !== "admin"){ setze("Nur der Admin darf Dateien hochladen."); return; }
   const klasse = $("#upKlasse").value, mk = $("#upModul").value, bereich = $("#upBereich").value;
   const datei = $("#upDatei").files[0];
   const token = $("#upToken").value.trim();
