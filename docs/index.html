@@ -175,6 +175,11 @@
   .docrow .open:disabled{opacity:.6;cursor:wait}
   .docrow .dl{flex:none;width:31px;height:31px;display:grid;place-items:center;border-radius:9px;cursor:pointer;
     background:transparent;border:1px solid var(--line);color:var(--tx3);transition:.12s}
+  /* Der Herunterladen-Knopf ist BESCHRIFTET, nicht nur ein Icon: auf dem Handy
+     gibt es kein Hover, ein blosses Symbol mit title-Tooltip wird dort uebersehen. */
+  .docrow .dl.laden{width:auto;height:31px;display:inline-flex;align-items:center;gap:6px;
+    padding:0 11px;font:inherit;font-size:12.5px;font-weight:650}
+  .docrow .dl.laden:disabled{opacity:.6;cursor:wait}
   .docrow .dl:hover{color:var(--fach);border-color:var(--fach)}
   .cat-empty{padding:18px 15px;text-align:center;color:var(--tx3);font-size:13.5px;line-height:1.6}
 
@@ -1365,8 +1370,8 @@ function docRow(d, mitGroesse=true, loeschInfo=null){
     <span class="dn">${esc(d.name||"Dokument")}</span>${g}
     <button class="open" data-vault="${esc(d.vault)}" data-id="${esc(d.id)}"
       data-typ="${esc(d.typ)}" data-name="${esc(d.name||"Dokument")}">Öffnen ↗</button>
-    <button class="dl" title="Herunterladen" data-vault="${esc(d.vault)}" data-id="${esc(d.id)}"
-      data-typ="${esc(d.typ)}" data-name="${esc(d.name||"Dokument")}" data-dl="1">${DL_SVG}</button>${loesch}</li>`;
+    <button class="dl laden" title="Datei herunterladen" data-vault="${esc(d.vault)}" data-id="${esc(d.id)}"
+      data-typ="${esc(d.typ)}" data-name="${esc(d.name||"Dokument")}" data-dl="1">${DL_SVG} Laden</button>${loesch}</li>`;
 }
 
 function renderModulReferentiels(mk,f){
