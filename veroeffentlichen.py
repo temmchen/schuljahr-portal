@@ -203,6 +203,26 @@ def main():
     dashboard = Path(cfg["inhalt"]).expanduser()
     jahr = jahr_von(dashboard)
     inhalt = dashboard / jahr
+
+    # --pruefen: NUR nachsehen, nichts verändern (für den Portal-Wächter).
+    # Bewusst vor Pull/Sync/Einsammeln — dieser Modus fasst nichts an.
+    if "--pruefen" in sys.argv:
+        alt = {}
+        if STAND.exists():
+            try:
+                alt = json.loads(STAND.read_text(encoding="utf-8")).get("online", {})
+            except Exception:
+                alt = {}
+        jetzt_online, _n, _w = inventar(cfg, inhalt)
+        git("fetch", "--quiet", "origin", "main", fehler_ok=True)
+        voraus = git("rev-list", "--count", "HEAD..origin/main",
+                     fehler_ok=True).stdout.strip() or "0"
+        if jetzt_online == alt and voraus == "0":
+            print("NICHTS-ZU-TUN")
+        else:
+            print("OFFEN")
+        return
+
     if not inhalt.is_dir():
         sys.exit(f"Inhalts-Ordner nicht gefunden: {inhalt}")
 
