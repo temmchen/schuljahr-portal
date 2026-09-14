@@ -38,6 +38,29 @@ ORDNER = {"skripte": "Skripte", "pruefungen": "Pruefungen", "aufgaben": "Aufgabe
           "sonstiges": "Sonstiges", "referentiels": "Referentiels"}
 
 
+# ───────────────────────── Schuljahr ────────────────────────────────────────
+# EINE Quelle der Wahrheit: <Dashboard>/aktuelles-jahr.txt (z. B. "2026-2027").
+# Veröffentlicht wird immer nur dieses Jahr — ältere Jahrgänge bleiben in
+# OneDrive liegen und halten das Portal klein.
+
+def jahr_von(dashboard) -> str:
+    from pathlib import Path as _P
+    marke = _P(dashboard) / "aktuelles-jahr.txt"
+    try:
+        j = marke.read_text(encoding="utf-8").strip()
+        if j:
+            return j
+    except Exception:
+        pass
+    jahre = sorted(p.name for p in _P(dashboard).iterdir()
+                   if p.is_dir() and len(p.name) == 9 and p.name[4] == "-" and p.name[:4].isdigit())
+    return jahre[-1] if jahre else "2026-2027"
+
+
+def jahr_anzeige(j: str) -> str:
+    return j.replace("-", " – ")
+
+
 def entschluessele(key: bytes, blob: bytes) -> bytes:
     return AESGCM(key).decrypt(blob[:12], blob[12:], None)
 
@@ -68,7 +91,8 @@ def einsammeln(trocken=False):
     state = json.loads(BUILD_STATE.read_text(encoding="utf-8"))
     schluessel = {v["id"]: base64.b64decode(v["key"]) for v in state.get("vaults", {}).values()}
     bekannt = {d["fid"] for d in state.get("dateien", {}).values()}
-    inhalt = Path(json.loads(KONFIG.read_text(encoding="utf-8"))["inhalt"])
+    dashboard = Path(json.loads(KONFIG.read_text(encoding="utf-8"))["inhalt"])
+    inhalt = dashboard / jahr_von(dashboard)
 
     idx_datei = VAULTS / "index.json"
     if not idx_datei.exists():

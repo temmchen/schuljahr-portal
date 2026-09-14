@@ -63,6 +63,29 @@ NIE_HOCHLADEN = "Noten"   # Ordner wird beim Build ignoriert (nur Hinweis ausgeg
 SCHUELER_BEREICHE = {"skripte"}          # Schüler sehen NUR Skripte
 REFERENTIELS_ORDNER = "Referentiels"
 
+# ───────────────────────── Schuljahr ────────────────────────────────────────
+# EINE Quelle der Wahrheit: <Dashboard>/aktuelles-jahr.txt (z. B. "2026-2027").
+# Veröffentlicht wird immer nur dieses Jahr — ältere Jahrgänge bleiben in
+# OneDrive liegen und halten das Portal klein.
+
+def jahr_von(dashboard) -> str:
+    from pathlib import Path as _P
+    marke = _P(dashboard) / "aktuelles-jahr.txt"
+    try:
+        j = marke.read_text(encoding="utf-8").strip()
+        if j:
+            return j
+    except Exception:
+        pass
+    jahre = sorted(p.name for p in _P(dashboard).iterdir()
+                   if p.is_dir() and len(p.name) == 9 and p.name[4] == "-" and p.name[:4].isdigit())
+    return jahre[-1] if jahre else "2026-2027"
+
+
+def jahr_anzeige(j: str) -> str:
+    return j.replace("-", " – ")
+
+
 
 # ─────────────────────────── Krypto-Bausteine ───────────────────────────────
 
@@ -214,7 +237,12 @@ def main():
     cfg = json.loads(KONFIG.read_text(encoding="utf-8"))
     warne_wenn_github_voraus()
 
-    inhalt = Path(cfg["inhalt"]).expanduser()
+    dashboard = Path(cfg["inhalt"]).expanduser()
+    jahr = jahr_von(dashboard)
+    inhalt = dashboard / jahr          # nur das aktuelle Schuljahr wird gebaut
+    if not inhalt.is_dir():
+        sys.exit(f"Jahresordner fehlt: {inhalt}\n→ in aktuelles-jahr.txt ein vorhandenes Jahr eintragen.")
+    print(f"Schuljahr: {jahr_anzeige(jahr)}   (Ordner {jahr})")
     if not inhalt.is_dir():
         sys.exit(f"Inhalts-Ordner nicht gefunden: {inhalt}")
 
@@ -444,7 +472,7 @@ def main():
             "klasse": p["klasse"], "label": p["label"]})
     index = {
         "v": 1,
-        "schuljahr": cfg.get("schuljahr", ""),
+        "schuljahr": jahr_anzeige(jahr),
         "erstellt": date.today().isoformat(),
         "kdf": {"typ": "PBKDF2-SHA256", "iter": PBKDF2_ITER},
         "principals": [{"id": p["id"], "salt": b64(p["salt"])} for p in principals],

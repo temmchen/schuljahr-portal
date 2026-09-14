@@ -34,6 +34,29 @@ AKZENTE = ["eltec", "mint", "prodi"]
 ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789"   # ohne 0/O, 1/l/i — tippfreundlich
 
 
+# ───────────────────────── Schuljahr ────────────────────────────────────────
+# EINE Quelle der Wahrheit: <Dashboard>/aktuelles-jahr.txt (z. B. "2026-2027").
+# Veröffentlicht wird immer nur dieses Jahr — ältere Jahrgänge bleiben in
+# OneDrive liegen und halten das Portal klein.
+
+def jahr_von(dashboard) -> str:
+    from pathlib import Path as _P
+    marke = _P(dashboard) / "aktuelles-jahr.txt"
+    try:
+        j = marke.read_text(encoding="utf-8").strip()
+        if j:
+            return j
+    except Exception:
+        pass
+    jahre = sorted(p.name for p in _P(dashboard).iterdir()
+                   if p.is_dir() and len(p.name) == 9 and p.name[4] == "-" and p.name[:4].isdigit())
+    return jahre[-1] if jahre else "2026-2027"
+
+
+def jahr_anzeige(j: str) -> str:
+    return j.replace("-", " – ")
+
+
 def neues_passwort(gruppen):
     return "-".join("".join(secrets.choice(ALPHABET) for _ in range(4)) for _ in range(gruppen))
 
@@ -172,7 +195,8 @@ def cmd_klasse(cfg, key):
     name = input(f"Anzeigename [{key}]: ").strip() or key
     faecher = frage_faecher()
 
-    inhalt = Path(cfg["inhalt"]).expanduser()
+    dashboard = Path(cfg["inhalt"]).expanduser()
+    inhalt = dashboard / jahr_von(dashboard)
     for fach in faecher:
         for mname in fach["modul"].values():
             mdir = inhalt / key / mname.replace(" ", "")

@@ -39,6 +39,29 @@ sys.path.insert(0, str(HIER))
 import verwaltung                              # neues_passwort(), speichere()
 
 
+# ───────────────────────── Schuljahr ────────────────────────────────────────
+# EINE Quelle der Wahrheit: <Dashboard>/aktuelles-jahr.txt (z. B. "2026-2027").
+# Veröffentlicht wird immer nur dieses Jahr — ältere Jahrgänge bleiben in
+# OneDrive liegen und halten das Portal klein.
+
+def jahr_von(dashboard) -> str:
+    from pathlib import Path as _P
+    marke = _P(dashboard) / "aktuelles-jahr.txt"
+    try:
+        j = marke.read_text(encoding="utf-8").strip()
+        if j:
+            return j
+    except Exception:
+        pass
+    jahre = sorted(p.name for p in _P(dashboard).iterdir()
+                   if p.is_dir() and len(p.name) == 9 and p.name[4] == "-" and p.name[:4].isdigit())
+    return jahre[-1] if jahre else "2026-2027"
+
+
+def jahr_anzeige(j: str) -> str:
+    return j.replace("-", " – ")
+
+
 def sag(text=""):
     print(text, flush=True)
 
@@ -177,7 +200,9 @@ def main():
     if not KONFIG.is_file():
         sys.exit("zugangsdaten.json fehlt im Portal-Ordner.")
     cfg = json.loads(KONFIG.read_text(encoding="utf-8"))
-    inhalt = Path(cfg["inhalt"]).expanduser()
+    dashboard = Path(cfg["inhalt"]).expanduser()
+    jahr = jahr_von(dashboard)
+    inhalt = dashboard / jahr
     if not inhalt.is_dir():
         sys.exit(f"Inhalts-Ordner nicht gefunden: {inhalt}")
 
