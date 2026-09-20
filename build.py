@@ -479,6 +479,25 @@ def main():
         "vaults": index_vaults,
         "kekw": kekw,
     }
+    # ── Zugangs-Spickzettel für den Admin (NUR unter dem ADMIN-KEK) ────────
+    # Der Admin soll nach seiner Anmeldung sofort alle Klassen-Passwörter
+    # sehen und projizieren können, ohne irgendwo zu suchen. Die Liste liegt
+    # deshalb — genau wie kekw — AES-256-GCM-verschlüsselt unter dem ADMIN-KEK
+    # im öffentlichen Index.
+    # Warum das sicher ist: Profs, Klassen und Fremde besitzen den
+    # Admin-KEK nicht. Sie bekommen beim Entschlüsseln einen InvalidTag — das
+    # ist eine kryptographische Sperre, keine Anzeige-Einstellung im Browser.
+    # BEWUSST NICHT enthalten: die Passwörter der Profs und des Admins selbst.
+    zugaenge = {
+        "v": 1,
+        "klassen": [{"key": kl["key"],
+                     "name": kl.get("name") or kl["key"],
+                     "passwort": unicodedata.normalize("NFC", kl["passwort"])}
+                    for kl in klassen],
+        "stand": date.today().isoformat(),
+    }
+    index["zugaenge"] = wickle_ein(admin_pr["kek"], zugaenge)
+
     BUILD_STATE.write_text(json.dumps(neu_state, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"\nVerschlüsselt: {zaehler['neu']} Datei(en) neu, "
           f"{zaehler['wiederverwendet']} unverändert übernommen "

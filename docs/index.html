@@ -240,6 +240,64 @@
   footer{margin-top:36px;padding-top:18px;border-top:1px solid var(--line);color:var(--tx3);font-size:12.5px;line-height:1.7}
   footer b{color:var(--tx2)}
 
+
+  /* ---------- 🔑 Zugänge der Klassen (nur Admin) ---------- */
+  .zg-karte .zg-alle{margin-left:auto}
+  .zg-zeile{display:flex;align-items:center;gap:12px;padding:10px 12px;
+    border-radius:var(--radius-s);transition:.12s;flex-wrap:wrap}
+  .zg-zeile:hover{background:var(--card2)}
+  .zg-name{font-weight:750;font-size:15.5px;min-width:120px}
+  .zg-pw{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;
+    font-size:20px;font-weight:750;letter-spacing:1.2px;color:var(--tx);
+    background:var(--card2);border:1px solid var(--line2);padding:5px 12px;border-radius:9px;
+    overflow-wrap:anywhere}
+  .zg-knoepfe{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+  @media (max-width:640px){ .zg-knoepfe{margin-left:0} .zg-pw{font-size:18px} }
+
+  /* ---------- 📽️ Projektion (Vollbild) ------------------------------------
+     BEWUSST immer weiss mit schwarzer Schrift — unabhängig von Hell/Dunkel:
+     auf dem Beamer ist ein dunkles Bild schlecht lesbar, und der QR-Code
+     braucht ohnehin einen weissen Untergrund. */
+  .proj{position:fixed;inset:0;z-index:200;background:#fff;color:#000;
+    display:none;flex-direction:column;gap:1.2vh;padding:2vh 2.4vw;overflow:auto}
+  .proj.offen{display:flex}
+  .proj *{color:#000}
+  .proj-leiste{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .proj-chips{display:flex;gap:6px;flex-wrap:wrap;margin-right:auto}
+  .proj-btn{border:1px solid #b9b9b9;background:#fff;font:inherit;font-size:15px;font-weight:700;
+    padding:7px 13px;border-radius:10px;cursor:pointer}
+  .proj-btn:hover{background:#eee}
+  .proj-chip{border:1px solid #b9b9b9;background:#fff;font:inherit;font-size:14px;font-weight:700;
+    padding:6px 11px;border-radius:9px;cursor:pointer}
+  .proj-chip.on{background:#111;border-color:#111}
+  .proj-chip.on{color:#fff}
+  .proj-kopf{text-align:center}
+  .proj-portal{font-size:clamp(17px,2.4vw,32px);font-weight:800;letter-spacing:.4px}
+  .proj-adresse{font-size:clamp(19px,3.4vw,52px);font-weight:800;line-height:1.1;
+    margin-top:.4vh;word-break:break-all}
+  .proj-mitte{flex:1;display:flex;align-items:center;justify-content:center;gap:3vw;min-height:0}
+  .proj-links{flex:none;text-align:center}
+  .proj-qr{background:#fff;padding:12px;display:inline-block;line-height:0}
+  .proj-qr svg{width:min(60vh,45vw);height:auto;display:block;shape-rendering:crispEdges}
+  .proj-qr-text{margin-top:1.2vh;font-size:clamp(13px,1.6vw,23px);font-weight:700}
+  .proj-rechts{flex:1;min-width:0;text-align:center}
+  .proj-klasse{font-size:7vw;font-weight:900;line-height:1.05;word-break:break-word}
+  .proj-pw{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;
+    font-size:clamp(26px,8vw,150px);font-weight:800;letter-spacing:.06em;
+    white-space:nowrap;line-height:1.15;margin-top:1.4vh}
+  .proj-pw-sub{margin-top:1.2vh;font-size:clamp(12px,1.5vw,21px);font-weight:700}
+  .proj-pw-sub,.proj-schritte{color:#444}
+  .proj-schritte{text-align:center;font-size:clamp(13px,1.7vw,25px);font-weight:700;
+    border-top:1px solid #ddd;padding-top:1.1vh}
+  .proj-schritte b{color:#000}
+  @media (max-width:820px), (orientation:portrait){
+    .proj-mitte{flex-direction:column;gap:2vh}
+    .proj-rechts{width:100%}
+    .proj-qr svg{width:min(40vh,72vw)}
+    .proj-klasse{font-size:9vw}
+    .proj-pw{font-size:clamp(22px,10vw,90px)}
+  }
+
   @media (max-width:720px){ .cats-wrap{grid-template-columns:1fr} }
 </style>
 </head>
@@ -268,6 +326,35 @@
 </header>
 
 <main id="view"></main>
+<!-- Projektions-Bildschirm: Adresse + QR + Passwort gross für den Beamer.
+     Wird nur in der Admin-Sicht befüllt und geöffnet. -->
+<div class="proj" id="proj" role="dialog" aria-modal="true"
+     aria-label="Zugangsdaten projizieren" hidden>
+  <div class="proj-leiste">
+    <div class="proj-chips" id="projChips"></div>
+    <button class="proj-btn" id="projZurueck" title="Vorige (Pfeil links)" aria-label="Vorige">◀</button>
+    <button class="proj-btn" id="projVor" title="Nächste (Pfeil rechts)" aria-label="Nächste">▶</button>
+    <button class="proj-btn" id="projVoll" title="Vollbild (Taste F)">⤢ Vollbild</button>
+    <button class="proj-btn" id="projZu" title="Schließen (Esc)" aria-label="Schließen">✕</button>
+  </div>
+  <div class="proj-kopf">
+    <div class="proj-portal" id="projPortal"></div>
+    <div class="proj-adresse" id="projAdresse"></div>
+  </div>
+  <div class="proj-mitte">
+    <div class="proj-links">
+      <div class="proj-qr" id="projQr"></div>
+      <div class="proj-qr-text">QR scannen oder Adresse eintippen</div>
+    </div>
+    <div class="proj-rechts">
+      <div class="proj-klasse" id="projKlasse"></div>
+      <div class="proj-pw" id="projPw"></div>
+      <div class="proj-pw-sub">Kleinbuchstaben · mit Bindestrichen</div>
+    </div>
+  </div>
+  <div class="proj-schritte" id="projSchritte"></div>
+</div>
+
 <div class="toast" id="toast" role="alert"></div>
 
 <footer>
@@ -474,12 +561,21 @@ async function ladeDaten(session){
 function sessionSpeichern(s){ try{ sessionStorage.setItem(SESSION_KEY, JSON.stringify(s)); }catch(e){} }
 function sessionLesen(){ try{ return JSON.parse(sessionStorage.getItem(SESSION_KEY)||"null"); }catch(e){ return null; } }
 function abmelden(){
+  projSchliessen();        /* Projektion zu … */
+  zugaengeVergessen();     /* … und die Passwörter aus dem Speicher nehmen */
   try{ sessionStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(TOKEN_KEY); }catch(e){}
   blobCache.forEach(url=>URL.revokeObjectURL(url));
   location.reload();
 }
 
 /* ═══════════════════════════ Login-Ansicht ══════════════════════════════ */
+/* Das Anmelde-Formular als Konstante — der Projektions-Bildschirm liest hier ab,
+   wie viele Schritte er anzeigen muss (nur ein Feld → Adresse + Passwort). */
+const LOGIN_FORMULAR = `<form id="loginForm" autocomplete="on">
+      <input type="password" id="pw" placeholder="Passwort" autocomplete="current-password"
+             autofocus required aria-label="Passwort">
+      <button type="submit" id="loginBtn">Anmelden</button>
+    </form>`;
 function renderLogin(){
   document.body.classList.remove("angemeldet");
   $("#view").innerHTML = `
@@ -487,11 +583,7 @@ function renderLogin(){
     <div class="logo">🔐</div>
     <h2>Schuljahr-Portal</h2>
     <div class="sub">Zugang für Klassen &amp; Lehrpersonen</div>
-    <form id="loginForm" autocomplete="on">
-      <input type="password" id="pw" placeholder="Passwort" autocomplete="current-password"
-             autofocus required aria-label="Passwort">
-      <button type="submit" id="loginBtn">Anmelden</button>
-    </form>
+    ${LOGIN_FORMULAR}
     <div class="login-status" id="loginStatus"></div>
     <div class="login-info">Jede Klasse und jede Lehrperson hat ein eigenes Passwort.<br>
       Die Inhalte werden erst nach der Anmeldung in deinem Browser entschlüsselt.</div>
@@ -528,7 +620,7 @@ function renderLogin(){
       SESSION = session;
       DATEN = await ladeDaten(session);
       sessionSpeichern(session);
-      starteOberflaeche();
+      await starteOberflaeche();
     }catch(e){
       status.classList.add("fehler");
       status.textContent = "Fehler beim Laden — bitte Verbindung prüfen und neu versuchen.";
@@ -553,7 +645,7 @@ function rolleText(){
   return `Klasse ${SESSION.label.replace(/^Klasse\s+/i,"")} · Schüler`;
 }
 
-function starteOberflaeche(){
+async function starteOberflaeche(){
   document.body.classList.add("angemeldet");
   $("#rolleText").textContent = rolleText();
   const keys = Object.keys(DATEN.klassen).sort();
@@ -566,6 +658,7 @@ function starteOberflaeche(){
   sel.style.display = keys.length>1 ? "" : "none";
   $("#logo").textContent = (AK()?.key || "PT").replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase();
   document.title = "Portal · " + (INDEX.schuljahr||"");
+  await ladeZugaenge();   /* Admin: Zugangsliste öffnen, damit die Karte gefüllt ist */
   state.view="home"; state.modul=null;
   render();
 }
@@ -611,7 +704,7 @@ function renderHome(){
       <div class="go">Öffnen →</div>
     </button>`;
   }).join("");
-  $("#view").innerHTML = (tiles
+  $("#view").innerHTML = renderZugangsKarte() + (tiles
     ? `<div class="grid">${tiles}</div>`
     : `<div class="empty-note">Für diese Klasse sind noch keine Fächer hinterlegt.</div>`)
     + renderAdminKarte();
@@ -1029,6 +1122,41 @@ async function befuelleAdminSelects(){
   }
 }
 
+/* ───────── Zugangs-Spickzettel mitpflegen ────────────────────────────────
+   idx.zugaenge ist genau die Liste, die die Karte „Zugänge …" und der Beamer
+   zeigen. Sie liegt unter dem ADMIN-KEK im Index. Wer principals, kekw oder
+   wraps ändert, MUSS sie mitschreiben — sonst projiziert der Admin ein
+   Passwort, mit dem sich niemand mehr anmelden kann (oder einen längst
+   entfernten Zugang). */
+async function zugaengeOeffnen(adminKek, idx){
+  if(!idx || !idx.zugaenge) return null;          /* Portal noch ohne Liste */
+  try{
+    const z = await entwickle(adminKek, idx.zugaenge);
+    if(!Array.isArray(z.klassen)) z.klassen = [];
+    if(!Array.isArray(z.leser))   z.leser   = [];
+    return z;
+  }catch(e){ return null; }        /* nicht lesbar → lieber gar nicht anfassen */
+}
+async function zugaengeSchreiben(kekFuerListe, idx, liste){
+  if(!liste) return;
+  liste.v = 1;
+  liste.stand = new Date().toISOString().slice(0,10);
+  idx.zugaenge = await wickleEin(kekFuerListe, liste);
+}
+function zgKlassenName(meta){ return (meta.label || "").replace(/^Klasse\s+/i, ""); }
+/* Karte an Ort und Stelle auffrischen, ohne die ganze Seite neu zu bauen
+   (Token-Feld, Auswahllisten und offene Panels bleiben so stehen). */
+function zugangsKarteAktualisieren(){
+  const alt = document.querySelector(".zg-karte");
+  if(!alt) return;
+  const html = renderZugangsKarte();
+  if(!html){ alt.remove(); return; }
+  const huelle = document.createElement("div");
+  huelle.innerHTML = html;
+  const neu = huelle.firstElementChild;
+  if(neu) alt.replaceWith(neu);
+}
+
 async function adminNeueKlasse(){
   const status = $("#nkStatus"), knopf = $("#nkStart"), ausgabe = $("#nkAusgabe");
   const setze = t => { status.textContent = t; };
@@ -1119,6 +1247,14 @@ async function adminNeueKlasse(){
     idx.principals.push({ id:pid, salt:b64ausBytes(salt) });
     (idx.kekw ??= {})[pid] = await wickleEin(adminKek,
       { kek:b64ausBytes(klassenKekRoh), rolle:"schueler", klasse:kuerzel, label:`Klasse ${name}` });
+    /* … und in die sichtbare Zugangsliste, damit die Karte den neuen Zugang
+       sofort zeigt (und nicht erst nach dem nächsten Veröffentlichen). */
+    const spick = await zugaengeOeffnen(adminKek, idx);
+    if(spick){
+      spick.klassen = spick.klassen.filter(k=>k && k.key!==kuerzel);
+      spick.klassen.push({ key:kuerzel, name, passwort });
+      await zugaengeSchreiben(adminKek, idx, spick);
+    }
     setze("Speichere index.json …");
     await ghAPI("contents/docs/vaults/index.json", {method:"PUT", body: JSON.stringify({
       message:`Portal: neue Klasse ${kuerzel}`, branch:"main", sha: idxAntwort.sha,
@@ -1140,6 +1276,7 @@ async function adminNeueKlasse(){
       <code>zugangsdaten.json</code> ergänzen (inkl. Fächer) — der Ein-Klick-Button warnt dich.</div></div>`;
     toast(`✅ Klasse „${name}" angelegt — Passwort notieren!`);
     $("#nkKuerzel").value = ""; $("#nkName").value = "";
+    await ladeZugaenge();     /* Zugangskarte kennt die neue Klasse sofort */
     render();
   }catch(e){
     setze("Fehler: " + e.message);
@@ -1184,6 +1321,10 @@ async function adminPasswortNeu(){
       for(const [pid, w] of Object.entries(idx.kekw || {}))
         kekwNeu[pid] = await wickleEin(neuKek, await entwickle(adminKek, w));
       idx.kekw = kekwNeu;
+      /* Der Spickzettel hängt ebenfalls am Admin-KEK — ohne Umwickeln wäre die
+         Zugangsliste nach dem nächsten Anmelden nicht mehr zu öffnen. */
+      const spickSelbst = await zugaengeOeffnen(adminKek, idx);
+      if(spickSelbst) await zugaengeSchreiben(neuKek, idx, spickSelbst);
       idx.principals.forEach(pr=>{ if(pr.id===SESSION.pid) pr.salt = b64ausBytes(salt); });
       selbstNeuRoh = neuRoh;   // Session erst nach erfolgreichem PUT umstellen
     } else {
@@ -1204,6 +1345,23 @@ async function adminPasswortNeu(){
       }
       idx.principals.forEach(pr=>{ if(pr.id===ziel) pr.salt = b64ausBytes(salt); });
       idx.kekw[ziel] = await wickleEin(adminKek, { ...meta, kek:b64ausBytes(neuRoh) });
+      /* Pflichtteil: die angezeigte Liste mitziehen. Sonst steht in der Karte
+         und auf dem Beamer weiter das alte, ab jetzt ungültige Passwort. */
+      const spick = await zugaengeOeffnen(adminKek, idx);
+      if(spick){
+        if(meta.rolle === "schueler"){
+          const e = spick.klassen.find(k=>k && k.key===meta.klasse)
+                 || spick.klassen.find(k=>k && (k.name||k.key)===zgKlassenName(meta));
+          if(e) e.passwort = passwort;
+          else spick.klassen.push({ key: meta.klasse || zgKlassenName(meta),
+                                    name: zgKlassenName(meta), passwort });
+        } else if(meta.rolle === "nutzer"){
+          const e = spick.leser.find(l=>l && l.name===meta.label);
+          if(e) e.passwort = passwort;
+          else spick.leser.push({ name: meta.label, passwort });
+        }
+        await zugaengeSchreiben(adminKek, idx, spick);
+      }
     }
     setze("Speichere index.json …");
     await ghAPI("contents/docs/vaults/index.json", {method:"PUT", body: JSON.stringify({
@@ -1211,6 +1369,8 @@ async function adminPasswortNeu(){
       content: b64ausBytes(new TextEncoder().encode(JSON.stringify(idx, null, 1)))})}, token);
     INDEX = idx;
     if(selbstNeuRoh){ SESSION.kek = b64ausBytes(selbstNeuRoh); sessionSpeichern(SESSION); }
+    await ladeZugaenge();            /* Karte + Beamer zeigen sofort das neue PW */
+    zugangsKarteAktualisieren();
     setze("");
     ausgabe.innerHTML = `<div class="np-erfolg">✅ Neues Passwort für <b>${esc(label)}</b>
       — gilt in 1–2 min: <div class="np-pw"><code>${esc(passwort)}</code></div>
@@ -1266,6 +1426,16 @@ async function adminZugangEntfernen(){
     }
     idx.principals = idx.principals.filter(pr=>pr.id!==ziel);
     delete idx.kekw[ziel];
+    /* Auch hier gilt: sonst bietet die Karte weiter einen widerrufenen Zugang an. */
+    const spick = await zugaengeOeffnen(adminKek, idx);
+    if(spick){
+      if(meta.rolle === "schueler")
+        spick.klassen = spick.klassen.filter(k=>k && k.key!==meta.klasse
+                                               && (k.name||k.key)!==zgKlassenName(meta));
+      else if(meta.rolle === "nutzer")
+        spick.leser = spick.leser.filter(l=>l && l.name!==meta.label);
+      await zugaengeSchreiben(adminKek, idx, spick);
+    }
     setze("Speichere index.json …");
     await ghAPI("contents/docs/vaults/index.json", {method:"PUT", body: JSON.stringify({
       message:`Portal: Zugang entfernt`, branch:"main", sha: idxAntwort.sha,
@@ -1273,7 +1443,7 @@ async function adminZugangEntfernen(){
     INDEX = idx; sessionSpeichern(SESSION);
     setze("");
     toast(`✅ ${istKlasse ? "Klasse "+meta.klasse : meta.label} entfernt — in 1–2 min wirksam.`);
-    starteOberflaeche();
+    await starteOberflaeche();
   }catch(e){
     setze("Fehler: " + e.message);
   }finally{
@@ -1469,9 +1639,412 @@ function oeffneDatei(btn){
   }).finally(()=>{ btn.disabled = false; });
 }
 
+/* ═══════════ 🔑 Zugänge der Klassen + Projektion (nur Admin) ═════════════
+   Der Admin sieht die Klassen-Passwörter direkt nach dem Anmelden und kann
+   sie mit einem Klick gross an die Wand werfen. Die Liste liegt im Index
+   NUR unter dem Admin-KEK verschlüsselt (build.py: index["zugaenge"]) —
+   für Profs, Klassen und Fremde ist sie kryptographisch nicht zu öffnen. */
+/* ───────── QR-Code erzeugen (Byte-Modus, Fehlerkorrektur M, Version 1–9) ──
+   Eigenbau in Vanilla-JS: das Portal lädt bewusst KEIN fremdes Skript.
+   Version 9 fasst 180 Zeichen — weit mehr als jede Portal-Adresse braucht. */
+const QR_SPEC = {   /* Version: [ [[Blöcke, Datenbytes], …], ECC-Bytes je Block ] */
+  1:[[[1,16]],10], 2:[[[1,28]],16], 3:[[[1,44]],26], 4:[[[2,32]],18], 5:[[[2,43]],24],
+  6:[[[4,27]],16], 7:[[[4,31]],18], 8:[[[2,38],[2,39]],22], 9:[[[3,36],[2,37]],22]
+};
+const QR_AUSRICHT = {1:[],2:[6,18],3:[6,22],4:[6,26],5:[6,30],6:[6,34],
+  7:[6,22,38],8:[6,24,42],9:[6,26,46]};
+const QR_EXP = new Uint8Array(512), QR_LOG = new Uint8Array(256);
+(function(){ let x=1;
+  for(let i=0;i<255;i++){ QR_EXP[i]=x; QR_LOG[x]=i; x<<=1; if(x & 0x100) x^=0x11D; }
+  for(let i=255;i<512;i++) QR_EXP[i]=QR_EXP[i-255]; })();
+const qrMul = (a,b)=> (a===0||b===0) ? 0 : QR_EXP[QR_LOG[a]+QR_LOG[b]];
+
+function qrGenerator(n){                      /* Reed-Solomon-Generatorpolynom */
+  let g=[1];
+  for(let i=0;i<n;i++){
+    const neu = new Array(g.length+1).fill(0);
+    for(let j=0;j<g.length;j++){ neu[j]^=g[j]; neu[j+1]^=qrMul(g[j], QR_EXP[i]); }
+    g=neu;
+  }
+  return g;
+}
+function qrEcc(daten, anzahl){
+  const g = qrGenerator(anzahl), rest = new Array(anzahl).fill(0);
+  for(const d of daten){
+    const f = d ^ rest[0];
+    rest.shift(); rest.push(0);
+    if(f) for(let i=0;i<anzahl;i++) rest[i] ^= qrMul(g[i+1], f);
+  }
+  return rest;
+}
+function qrBch(wert, gen, stellen){
+  let w = wert << stellen;
+  const grad = 31 - Math.clz32(gen);
+  while(w && (31 - Math.clz32(w)) >= grad) w ^= gen << ((31 - Math.clz32(w)) - grad);
+  return w;
+}
+function qrFormatBits(maske){        /* Level M = 0b00 → Rohwert ist die Maske */
+  return ((maske<<10) | qrBch(maske, 0x537, 10)) ^ 0x5412;
+}
+function qrSetzeFormat(t, n, bits){
+  const bit = i => (bits>>i) & 1;
+  for(let i=0;i<=5;i++) t[i][8] = bit(i);
+  t[7][8]=bit(6); t[8][8]=bit(7); t[8][7]=bit(8);
+  for(let i=9;i<15;i++) t[8][14-i] = bit(i);
+  for(let i=0;i<8;i++)  t[8][n-1-i] = bit(i);
+  for(let i=8;i<15;i++) t[n-15+i][8] = bit(i);
+  t[n-8][8] = 1;                                     /* immer dunkles Modul */
+}
+const QR_MASKEN = [ (x,y)=>(x+y)%2, (x,y)=>y%2, (x,y)=>x%3, (x,y)=>(x+y)%3,
+  (x,y)=>((y>>1)+((x/3)|0))%2, (x,y)=>((x*y)%2)+((x*y)%3),
+  (x,y)=>(((x*y)%2)+((x*y)%3))%2, (x,y)=>(((x+y)%2)+((x*y)%3))%2 ];
+
+function qrStrafe(t,n){                        /* Bewertung nach Norm (Regel 1–4) */
+  let p=0;
+  const lauf = hole => { for(let a=0;a<n;a++){ let letzte=-1, len=0;
+      for(let b=0;b<n;b++){ const v=hole(a,b);
+        if(v===letzte) len++; else { if(len>=5) p+=len-2; letzte=v; len=1; } }
+      if(len>=5) p+=len-2; } };
+  lauf((y,x)=>t[y][x]); lauf((x,y)=>t[y][x]);
+  for(let y=0;y<n-1;y++) for(let x=0;x<n-1;x++){
+    const v=t[y][x];
+    if(v===t[y][x+1] && v===t[y+1][x] && v===t[y+1][x+1]) p+=3; }
+  const M1=[1,0,1,1,1,0,1,0,0,0,0], M2=[0,0,0,0,1,0,1,1,1,0,1];
+  const suche = hole => { for(let a=0;a<n;a++) for(let b=0;b+11<=n;b++){
+      let t1=true,t2=true;
+      for(let i=0;i<11;i++){ const v=hole(a,b+i); if(v!==M1[i])t1=false; if(v!==M2[i])t2=false; }
+      if(t1)p+=40; if(t2)p+=40; } };
+  suche((y,x)=>t[y][x]); suche((x,y)=>t[y][x]);
+  let dunkel=0; for(const r of t) for(const v of r) dunkel+=v;
+  p += Math.floor(Math.abs(dunkel*100/(n*n) - 50)/5)*10;
+  return p;
+}
+
+function qrModule(text){
+  const bytes = new TextEncoder().encode(text);
+  let version = 0;
+  for(let v=1; v<=9; v++){
+    const d = QR_SPEC[v][0].reduce((s,[k,b])=>s+k*b, 0);
+    if(bytes.length <= d-2){ version=v; break; }
+  }
+  if(!version) throw new Error("Adresse zu lang für einen QR-Code");
+  const [gruppen, eccLen] = QR_SPEC[version];
+  const datenBytes = gruppen.reduce((s,[k,b])=>s+k*b, 0);
+
+  /* Bitstrom: Modus 0100 · Länge (8 Bit) · Nutzdaten · Abschluss · Füllbytes */
+  const bits=[]; const schreib=(w,l)=>{ for(let i=l-1;i>=0;i--) bits.push((w>>i)&1); };
+  schreib(4,4); schreib(bytes.length,8);
+  for(const b of bytes) schreib(b,8);
+  for(let i=0;i<4 && bits.length<datenBytes*8; i++) bits.push(0);
+  while(bits.length % 8) bits.push(0);
+  const cw=[];
+  for(let i=0;i<bits.length;i+=8){ let v=0; for(let j=0;j<8;j++) v=(v<<1)|bits[i+j]; cw.push(v); }
+  const fuell=[0xEC,0x11]; let fi=0;
+  while(cw.length < datenBytes) cw.push(fuell[fi++ % 2]);
+
+  /* Blöcke bilden, ECC rechnen, verschränkt aneinanderreihen */
+  const dB=[], eB=[]; let pos=0;
+  for(const [anzahl, groesse] of gruppen)
+    for(let i=0;i<anzahl;i++){ const blk=cw.slice(pos,pos+groesse); pos+=groesse;
+      dB.push(blk); eB.push(qrEcc(blk, eccLen)); }
+  const folge=[];
+  const maxD = Math.max(...dB.map(b=>b.length));
+  for(let i=0;i<maxD;i++) for(const b of dB) if(i<b.length) folge.push(b[i]);
+  for(let i=0;i<eccLen;i++) for(const b of eB) folge.push(b[i]);
+
+  /* Raster: Sucher, Takt, Ausrichtung, Format-/Versionsfelder */
+  const n = version*4+17;
+  const m = Array.from({length:n},()=>new Array(n).fill(null));   /* null = frei */
+  const feld=(x,y,w,h,f)=>{ for(let dy=0;dy<h;dy++) for(let dx=0;dx<w;dx++){
+      const yy=y+dy, xx=x+dx; if(yy>=0&&yy<n&&xx>=0&&xx<n) m[yy][xx]=f(dx,dy); } };
+  const sucher=(x,y)=>{ feld(x-1,y-1,9,9,()=>0);
+    feld(x,y,7,7,(dx,dy)=>(dx===0||dx===6||dy===0||dy===6)?1:0);
+    feld(x+2,y+2,3,3,()=>1); };
+  sucher(0,0); sucher(n-7,0); sucher(0,n-7);
+  for(let i=8;i<n-8;i++){ const b=(i%2)?0:1; m[6][i]=b; m[i][6]=b; }
+  const A = QR_AUSRICHT[version], L = A.length-1;
+  for(let i=0;i<A.length;i++) for(let j=0;j<A.length;j++){
+    /* die drei Muster in den Sucher-Ecken entfallen — alle anderen werden
+       gesetzt, auch dort, wo sie die Taktlinien kreuzen (ab Version 7 normal) */
+    if((i===0&&j===0) || (i===0&&j===L) || (i===L&&j===0)) continue;
+    feld(A[j]-2, A[i]-2, 5,5, (dx,dy)=>(dx===0||dx===4||dy===0||dy===4||(dx===2&&dy===2))?1:0); }
+  if(version>=7){
+    const vb = (version<<12) | qrBch(version, 0x1F25, 12);
+    for(let i=0;i<18;i++){ const b=(vb>>i)&1;
+      m[(i/3)|0][n-11+(i%3)] = b; m[n-11+(i%3)][(i/3)|0] = b; } }
+  qrSetzeFormat(m, n, 0);                     /* Plätze belegen, Werte folgen */
+
+  /* Daten im Zickzack einschreiben (Spalte 6 wird übersprungen) */
+  const frei = Array.from({length:n},(_,y)=>m[y].map(v=>v===null));
+  let bi=0, auf=true;
+  const naechstes=()=>{ const b = (bi < folge.length*8)
+      ? (folge[bi>>3] >> (7-(bi&7))) & 1 : 0; bi++; return b; };
+  for(let rechts=n-1; rechts>0; rechts-=2){
+    if(rechts===6) rechts=5;
+    for(let k=0;k<n;k++){
+      const y = auf ? n-1-k : k;
+      for(const x of [rechts, rechts-1]) if(frei[y][x]) m[y][x]=naechstes();
+    }
+    auf = !auf;
+  }
+
+  /* Maske wählen: alle acht bauen, die mit der kleinsten Strafe gewinnt */
+  let bestes=null, beste=Infinity, besteMaske=0;
+  for(let maske=0; maske<8; maske++){
+    const f = QR_MASKEN[maske];
+    const t = m.map((r,y)=>r.map((v,x)=> frei[y][x] ? (v ^ (f(x,y)===0?1:0)) : v));
+    qrSetzeFormat(t, n, qrFormatBits(maske));
+    const s = qrStrafe(t,n);
+    if(s < beste){ beste=s; bestes=t; besteMaske=maske; }
+  }
+  return { module: bestes, n, version, maske: besteMaske };
+}
+
+/* QR als SVG — mit weisser Ruhezone (4 Module), sonst liest ihn keine Kamera. */
+function qrSvg(text, attr){
+  const { module, n } = qrModule(text);
+  const rand = 4, s = n + 2*rand;
+  let d = "";
+  for(let y=0;y<n;y++){ let x=0;
+    while(x<n){
+      if(!module[y][x]){ x++; continue; }
+      let b=x; while(b<n && module[y][b]) b++;
+      d += `M${x+rand} ${y+rand}h${b-x}v1h-${b-x}z`;
+      x=b;
+    } }
+  return `<svg viewBox="0 0 ${s} ${s}" xmlns="http://www.w3.org/2000/svg" role="img" ${attr||""}>`
+       + `<rect width="${s}" height="${s}" fill="#fff"/><path fill="#000" d="${d}"/></svg>`;
+}
+/* ───────── Zugangsliste (nur Admin, nur unter dem Admin-KEK lesbar) ────── */
+let ZUGAENGE = null;        /* { klassen:[{key,name,passwort}], leser:[…], stand } */
+let ZUGAENGE_STATUS = "";   /* "" | "alt" (Block fehlt) | "fehler" */
+
+async function ladeZugaenge(){
+  ZUGAENGE = null; ZUGAENGE_STATUS = "";
+  /* 1. Linie: Rolle. 2. und entscheidende Linie: der Schlüssel — ohne den
+     Admin-KEK schlägt die Entschlüsselung unten kryptographisch fehl. */
+  if(!SESSION || SESSION.rolle !== "admin") return;
+  const block = INDEX && INDEX.zugaenge;
+  if(!block){ ZUGAENGE_STATUS = "alt"; return; }
+  try{
+    ZUGAENGE = await entwickle(await adminKekKey(), block);
+  }catch(e){ ZUGAENGE_STATUS = "fehler"; }
+}
+function zugaengeVergessen(){
+  /* Beim Abmelden die Passwörter aus dem Speicher der Seite nehmen. */
+  if(ZUGAENGE){
+    (ZUGAENGE.klassen||[]).forEach(z=>{ z.passwort = null; });
+    (ZUGAENGE.leser||[]).forEach(z=>{ z.passwort = null; });
+    ZUGAENGE.klassen = null; ZUGAENGE.leser = null;
+  }
+  ZUGAENGE = null; ZUGAENGE_STATUS = "";
+  const pw = $("#projPw"); if(pw) pw.textContent = "";
+}
+function zgListe(){
+  if(!ZUGAENGE) return [];
+  const aus = (ZUGAENGE.klassen||[]).filter(z=>z && z.passwort)
+    .map(z=>({ name: z.name || z.key, passwort: z.passwort, art: "Klasse" }));
+  (ZUGAENGE.leser||[]).filter(z=>z && z.passwort)
+    .forEach(z=>aus.push({ name: z.name, passwort: z.passwort, art: "Leser" }));
+  return aus;
+}
+
+/* Karte ganz oben in der Admin-Übersicht: alles sofort sichtbar. */
+function renderZugangsKarte(){
+  if(!SESSION || SESSION.rolle !== "admin") return "";
+  const kopf = (rechts) => `<section class="cat zg-karte" style="--fach:var(--accent)">
+    <h3><span class="ic">🔑</span> Zugänge der Klassen
+      <span class="hint-sub">nur in der Admin-Sicht</span>${rechts}</h3>`;
+  const liste = zgListe();
+  if(!liste.length){
+    const text = ZUGAENGE_STATUS === "fehler"
+      ? "Die Zugangsliste ließ sich nicht entschlüsseln — bitte einmal abmelden und neu anmelden."
+      : ZUGAENGE_STATUS === "alt"
+      ? "Dieses Portal wurde noch ohne Zugangsliste veröffentlicht. Portal einmal neu veröffentlichen (build.py, dann veroeffentlichen.py) — danach stehen die Passwörter hier."
+      : "Es sind keine Klassen-Zugänge hinterlegt.";
+    return kopf("") + `<div class="cat-empty">${esc(text)}</div></section>`;
+  }
+  const zeilen = liste.map((z,i)=>`<li class="zg-zeile">
+      <span class="di">${z.art==="Leser" ? "👤" : "🏫"}</span>
+      <span class="zg-name">${esc(z.name)}</span>
+      <span class="zg-pw">${esc(z.passwort)}</span>
+      <span class="zg-knoepfe">
+        <button class="btn up-btn zg-proj" data-i="${i}">📽️ Projizieren</button>
+        <button class="btn ghost zg-kopie" data-i="${i}">Kopieren</button>
+      </span></li>`).join("");
+  const stand = ZUGAENGE && ZUGAENGE.stand ? ` · Stand ${esc(ZUGAENGE.stand)}` : "";
+  return kopf(`<button class="btn up-btn zg-alle" id="zgAlle">📽️ Alle projizieren</button>`)
+    + `<ul class="doclist">${zeilen}</ul>
+    <div class="admin-hilfe">Die Liste steht im Portal <b>nur unter deinem Admin-Passwort</b>
+      verschlüsselt — Profs, Klassen und Fremde können sie nicht öffnen. „Projizieren"
+      zeigt Adresse, QR-Code und Passwort formatfüllend für den Beamer
+      (◀ ▶ blättern, <b>F</b> Vollbild, <b>Esc</b> schließt).${stand}<br>
+      Was du hier im Browser anlegst, neu würfelst oder entfernst, steht sofort
+      in dieser Liste. Prof- und Admin-Passwörter stehen bewusst <b>nicht</b> hier.</div></section>`;
+}
+
+async function zgKopieren(i){
+  const z = zgListe()[i];
+  if(!z) return;
+  try{
+    await navigator.clipboard.writeText(z.passwort);
+    toast("✅ Passwort kopiert.");
+    return;
+  }catch(e){ /* ältere Browser / kein sicherer Kontext → Rückfallweg */ }
+  const feld = document.createElement("textarea");
+  feld.value = z.passwort;
+  feld.setAttribute("readonly", "");
+  feld.style.cssText = "position:fixed;top:-1000px;opacity:0";
+  document.body.appendChild(feld);
+  feld.select();
+  let ok = false;
+  try{ ok = document.execCommand("copy"); }catch(e){}
+  feld.value = "";
+  feld.remove();
+  toast(ok ? "✅ Passwort kopiert." : "Kopieren ging nicht — bitte von Hand abschreiben.");
+}
+
+/* ───────── Projektions-Bildschirm ─────────────────────────────────────── */
+let PROJ_I = 0, PROJ_OFFEN = false;
+const projQrCache = new Map();          /* Adresse → fertiges SVG */
+
+function projAdresse(){ return location.origin + location.pathname; }
+function projSchritteHtml(){
+  /* Passt sich dem echten Login an: hat es nur EIN Eingabefeld (das Passwort),
+     sind es genau zwei Schritte. */
+  let felder = 1;
+  try{
+    const probe = document.createElement("div");
+    probe.innerHTML = LOGIN_FORMULAR;
+    felder = probe.querySelectorAll("input,select,textarea").length || 1;
+  }catch(e){}
+  return felder <= 1
+    ? `<b>1</b> Adresse öffnen &nbsp;·&nbsp; <b>2</b> Passwort eingeben`
+    : `<b>1</b> Adresse öffnen &nbsp;·&nbsp; <b>2</b> Zugang wählen &nbsp;·&nbsp; <b>3</b> Passwort eingeben`;
+}
+function projZeichne(){
+  const liste = zgListe();
+  if(!liste.length){ projSchliessen(); return; }
+  if(PROJ_I >= liste.length) PROJ_I = 0;
+  if(PROJ_I < 0) PROJ_I = liste.length - 1;
+  const z = liste[PROJ_I], adresse = projAdresse();
+  const marke = document.querySelector(".brand h1");
+  $("#projPortal").textContent = marke ? marke.textContent : "Portal";
+  $("#projAdresse").textContent = adresse;
+  if(!projQrCache.has(adresse)){
+    try{ projQrCache.set(adresse, qrSvg(adresse, 'aria-label="QR-Code zur Portal-Adresse"')); }
+    catch(e){ projQrCache.set(adresse, ""); }
+  }
+  const qr = $("#projQr");
+  if(qr.dataset.adresse !== adresse){
+    qr.innerHTML = projQrCache.get(adresse);
+    qr.dataset.adresse = adresse;
+  }
+  $("#projKlasse").textContent = z.name;
+  const pw = $("#projPw");
+  pw.textContent = z.passwort;
+  pw.style.fontSize = "";
+  $("#projSchritte").innerHTML = projSchritteHtml();
+  $("#projChips").innerHTML = liste.map((e,i)=>
+    `<button class="proj-chip${i===PROJ_I?" on":""}" data-i="${i}">${esc(e.name)}</button>`).join("");
+  projAnpassenBald();
+}
+/* Riesig — aber nie über den Rand: notfalls schrittweise kleiner.
+   Messlatte ist die Breite des Passwort-Feldes SELBST. Auf schmalen oder
+   hochkant stehenden Schirmen ist es genauso breit wie seine Spalte; ein
+   zusätzlicher Abzug (früher: Bildschirm minus 24 px) machte die
+   Abbruchbedingung unerfüllbar und schrumpfte die Schrift bis zum Anschlag. */
+let projAnpassRaf = 0, projAnpassTimer = 0;
+function projAnpassen(){
+  projAnpassRaf = 0;
+  clearTimeout(projAnpassTimer); projAnpassTimer = 0;
+  const pw = $("#projPw");
+  if(!pw || !PROJ_OFFEN || !pw.textContent) return;
+  pw.style.fontSize = "";                       /* erst zurück auf clamp() */
+  const platz = pw.clientWidth;
+  if(!platz) return;
+  let groesse = parseFloat(getComputedStyle(pw).fontSize) || 40;
+  let vorher = Infinity;
+  for(let i=0; i<40 && pw.scrollWidth > platz + 1 && groesse > 20; i++){
+    if(pw.scrollWidth >= vorher) break;   /* Breite hängt nicht an der Schrift */
+    vorher = pw.scrollWidth;
+    groesse *= 0.92;
+    pw.style.fontSize = groesse.toFixed(1) + "px";
+  }
+}
+function projAnpassenBald(){
+  if(!projAnpassRaf) projAnpassRaf = requestAnimationFrame(projAnpassen);
+  clearTimeout(projAnpassTimer);
+  projAnpassTimer = setTimeout(projAnpassen, 200);   /* Vollbild braucht länger */
+}
+/* Beamer angesteckt, Fenster verkleinert, Gerät gedreht, Vollbild verlassen:
+   ohne neues Messen bliebe die einmal gesetzte Inline-Schriftgröße stehen. */
+function projHoerer(an){
+  const m = an ? "addEventListener" : "removeEventListener";
+  window[m]("resize", projAnpassenBald);
+  window[m]("orientationchange", projAnpassenBald);
+  document[m]("fullscreenchange", projAnpassenBald);
+  document[m]("webkitfullscreenchange", projAnpassenBald);
+}
+function projOeffnen(i){
+  if(!SESSION || SESSION.rolle !== "admin") return;
+  if(!zgListe().length) return;
+  PROJ_I = Number(i) || 0;
+  PROJ_OFFEN = true;
+  const box = $("#proj");
+  box.hidden = false;
+  box.classList.add("offen");
+  projHoerer(true);
+  projZeichne();
+}
+function projSchliessen(){
+  PROJ_OFFEN = false;
+  projHoerer(false);
+  const box = $("#proj");
+  if(!box) return;
+  box.classList.remove("offen");
+  box.hidden = true;
+  const pw = $("#projPw"); if(pw) pw.textContent = "";
+  if(document.fullscreenElement || document.webkitFullscreenElement){
+    try{ (document.exitFullscreen || document.webkitExitFullscreen).call(document); }catch(e){}
+  }
+}
+function projVollbild(){
+  const el = document.documentElement;
+  try{
+    if(document.fullscreenElement || document.webkitFullscreenElement){
+      const raus = document.exitFullscreen || document.webkitExitFullscreen;
+      if(raus) Promise.resolve(raus.call(document)).catch(()=>{});
+    }else{
+      const rein = el.requestFullscreen || el.webkitRequestFullscreen;
+      if(rein) Promise.resolve(rein.call(el)).catch(()=>{});
+    }
+  }catch(e){ /* Browser verweigert Vollbild — Overlay bleibt trotzdem offen */ }
+}
+document.addEventListener("keydown", ev=>{
+  if(!PROJ_OFFEN) return;
+  if(ev.key === "Escape"){ ev.preventDefault(); projSchliessen(); }
+  else if(ev.key === "ArrowRight"){ ev.preventDefault(); PROJ_I++; projZeichne(); }
+  else if(ev.key === "ArrowLeft"){ ev.preventDefault(); PROJ_I--; projZeichne(); }
+  else if(ev.key === "f" || ev.key === "F"){ ev.preventDefault(); projVollbild(); }
+});
+$("#proj").addEventListener("click", ev=>{
+  const chip = ev.target.closest(".proj-chip");
+  if(chip){ PROJ_I = Number(chip.dataset.i); projZeichne(); return; }
+  if(ev.target.closest("#projZu")){ projSchliessen(); return; }
+  if(ev.target.closest("#projVoll")){ projVollbild(); return; }
+  if(ev.target.closest("#projVor")){ PROJ_I++; projZeichne(); return; }
+  if(ev.target.closest("#projZurueck")){ PROJ_I--; projZeichne(); return; }
+});
+
 /* ═══════════════════════════ Navigation & Kopf ══════════════════════════ */
 $("#view").addEventListener("click", e=>{
   if(e.target.closest("#upStart")){ adminUpload(); return; }
+  const zgP = e.target.closest(".zg-proj");
+  if(zgP){ projOeffnen(zgP.dataset.i); return; }
+  const zgK = e.target.closest(".zg-kopie");
+  if(zgK){ zgKopieren(Number(zgK.dataset.i)); return; }
+  if(e.target.closest("#zgAlle")){ projOeffnen(0); return; }
   if(e.target.closest("#npStart")){ adminNeuerProf(); return; }
   if(e.target.closest("#nkStart")){ adminNeueKlasse(); return; }
   if(e.target.closest("#pwStart")){ adminPasswortNeu(); return; }
@@ -1535,7 +2108,7 @@ $("#themeBtn").addEventListener("click",()=>{
     `<div class="empty-note">Portal-Daten nicht gefunden — wurde <code>build.py</code> ausgeführt?</div>`; return; }
   const alt = sessionLesen();
   if(alt){
-    try{ SESSION = alt; DATEN = await ladeDaten(alt); starteOberflaeche(); return; }
+    try{ SESSION = alt; DATEN = await ladeDaten(alt); await starteOberflaeche(); return; }
     catch(e){ SESSION=null; DATEN=null; try{ sessionStorage.removeItem(SESSION_KEY); }catch(_){}}
   }
   renderLogin();
