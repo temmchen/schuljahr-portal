@@ -9,3 +9,6 @@ zugangsdaten.json
 
 # GEHEIM — Tresor-Schlüssel des inkrementellen Builds
 .build-state.json
+
+# Sicherungskopien neben den Dateien (Konvention *.bak-JJJJMMTT)
+*.bak-*

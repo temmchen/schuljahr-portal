@@ -25,6 +25,7 @@ import json
 import re
 import subprocess
 import sys
+import unicodedata
 from pathlib import Path
 
 HIER = Path(__file__).resolve().parent
@@ -125,8 +126,10 @@ def inventar(cfg, inhalt: Path):
                 ziel = noten if bereich == "Noten" else online
                 for p in dateien_in(bdir):
                     st = p.stat()
-                    ziel[f"{kl['key']}/{mk}/{bereich}/{p.name}"] = [st.st_size,
-                                                                   int(st.st_mtime)]
+                    # NFC: der zweite Mac liefert Akzent-Namen zerlegt (NFD) – gleicher Name, andere
+                    # Bytes; ohne Angleichung gälten die Dateien dort als neu (siehe build.py nfc()).
+                    schluessel = unicodedata.normalize("NFC", f"{kl['key']}/{mk}/{bereich}/{p.name}")
+                    ziel[schluessel] = [st.st_size, int(st.st_mtime)]
                 vergraben = [u for u in bdir.iterdir()
                              if u.is_dir() and not u.name.startswith(".")
                              and any(x.is_file() and not x.name.startswith(".")
